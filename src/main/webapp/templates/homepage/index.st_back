@@ -1,0 +1,100 @@
+<html>
+	<head>
+		<title>ZCD Soundsystem</title>
+		<link rel="stylesheet" type="text/css" href="/jquery/jquery-ui-1.8.13.custom.css" />
+		<link rel="stylesheet" type="text/css" href="/styles/main.css" />
+		<script type='text/javascript' src='/jquery/jquery-1.5.1.min.js'></script>
+		<script type='text/javascript' src='/jquery/jquery-ui-1.8.13.custom.min.js'></script>
+		<script type='text/javascript' src='/javascripts/main.js'></script>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.1/swfobject.js"></script>
+		<script type='text/javascript' src='/tablesorter/jquery.tablesorter.min.js'></script>
+		<link rel="stylesheet" type="text/css" href="/tablesorter/style.css" />
+	</head>
+	<body>
+		<div id="videoDiv" style="display: none;">Loading...</div>
+		<div id="appheader" class="appheader">
+			<h3 class="title">ZCD<br/>Soundsystem</h3>
+			<div class="music_navigation">
+				<a href="#" id="back_button" class="backward_button_position backward_button"></a>
+				<a href="#" id="play_pause_button" class="play_pause_button_position play_button"></a>
+				<a href="#" id="forward_button" class="forward_button_position forward_button"></a>
+			</div>
+			<div id="now_playing" class="now_playing">
+				<p id="now_playing_artist" class="now_playing_artist">LCD Soundsystem</p>
+				<p id="now_playing_track" class="now_playing_track">Daft Punk is playing at my house</p>
+				<div id="slider-range-min"></div>
+			</div>
+		</div>
+		<div id="left_dock" class="left_dock">
+			<h1>LIBRARY</h1>
+				<a href="#" id="my_music_button"><h2>My Music</h2></a>
+			<h1>WAREHOUSE</h1>
+				<a href="#" id="browse_button"><h2>Browse</h2></a>
+				<a href="#" id="request_artist_button"><h2>Request an artist</h2></a>
+		</div>
+			<div id="right_dock" class="right_dock">
+				<div class="ad_block">
+					<p>Advertise here.</p>
+				</div>
+			</div>
+		<div id="main_content" class="main_content">
+			<div id="my_music_library_holder>
+				<table id="my_music_library" class="tablesorter">
+					<thead>
+						<tr>
+							<th style="width: 15px;"></th>
+							<th>Name</th>
+							<th>Artist</th>
+							<th>Album</th>
+							<th style="display: none;">Youtube ID</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="playable_track">
+							<td class="icons"><div class="row_icons "></div></td>
+							<td class="library_track">Darkest Days</td>
+							<td class="library_artist">Museum Of Fear</td>
+							<td>The God In My Closet</td>
+							<td style="display: none;" class="youtube_id">zq8zyRerlQw</td>
+						</tr>
+						<tr class="playable_track">
+							<td class="icons"><div class="row_icons "></div></td>
+							<td class="library_track">Always Goodbye</td>
+							<td class="library_artist">Museum Of Fear</td>
+							<td>The God In My Closet</td>
+							<td style="display: none;" class="youtube_id">Et5FYDm-4g8</td>
+						</tr>
+						<tr class="playable_track">
+							<td class="icons"><div class="row_icons "></div></td>
+							<td class="library_track">Mindwheel</td>
+							<td class="library_artist">Museum Of Fear</td>
+							<td>The God In My Closet</td>
+							<td style="display: none;" class="youtube_id">RbI9QRSbjQk</td>
+						</tr>
+						<tr class="playable_track">
+							<td class="icons"><div class="row_icons "></div></td>
+							<td class="library_track">Afterthought</td>
+							<td class="library_artist">Museum Of Fear</td>
+							<td>The God In My Closet</td>
+							<td style="display: none;" class="youtube_id">ostaylcID5A</td>
+						</tr>
+						<tr class="playable_track">
+							<td class="icons"><div class="row_icons "></div></td>
+							<td class="library_track">Fade</td>
+							<td class="library_artist">Museum Of Fear</td>
+							<td>The God In My Closet</td>
+							<td style="display: none;" class="youtube_id">dxRhKehX_cY</td>
+						</tr>
+						<tr class="playable_track">
+							<td class="icons"><div class="row_icons "></div></td>
+							<td class="library_track">Walking Wounded</td>
+							<td class="library_artist">Museum Of Fear</td>
+							<td>The God In My Closet</td>
+							<td style="display: none;" class="youtube_id">ksLYKQ-jbz4</td>
+						</tr>
+					</tbody> 
+				</table>
+			</div>
+		</div>
+	</body>
+</html>
