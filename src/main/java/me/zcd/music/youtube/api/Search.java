@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -29,6 +29,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import me.zcd.music.utils.URLFetch;
 import me.zcd.music.utils.XmlParser;
 import java.util.logging.Logger;
+import me.zcd.music.model.db.YoutubeIdRatings;
+import me.zcd.music.model.db.dao.YoutubeIdRatingDao;
+import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -39,6 +42,8 @@ public class Search {
 
 	private static final Logger log = Logger.getLogger(Search.class.getName());
 
+	private YoutubeIdRatingDao youtubeIdRatingDao = DaoProviderFactory.getProvider().getYoutubeIdRatingDao();
+	
 	/**
 	 * Attempts to find a link for the specified song. 
 	 * It does this by searching youtube for "[artist] [song] lyrics"
@@ -49,7 +54,7 @@ public class Search {
 	 * @throws IOException 
 	 * @throws SAXException 
 	 */
-	public static List<String> findYoutubeId(String artistName, String trackName) throws ParserConfigurationException, SAXException, IOException {
+	public List<String> findYoutubeId(String artistName, String trackName) throws ParserConfigurationException, SAXException, IOException {
 		List<SearchResult> results = getYoutubeResults(artistName, trackName);
 		return findBestResult(results, artistName, trackName);
 	}
@@ -57,36 +62,23 @@ public class Search {
 	/**
 	 * Applies an algorithm to find the best match based on title/views
 	 */
-	private static List<String> findBestResult(List<SearchResult> results, String artistName, String trackName) {
+	private List<String> findBestResult(List<SearchResult> results, String artistName, String trackName) {
 		Map<String, Integer> descriptionWordRankings = new HashMap<String, Integer>();
-		//good
-		descriptionWordRankings.put("lyrics", 70);
-		descriptionWordRankings.put("album", 70);
-		descriptionWordRankings.put("official", 20);
-		descriptionWordRankings.put("mp3", 70);
 		//bad
-		descriptionWordRankings.put("live", -100);
-		descriptionWordRankings.put("cover", -100);
-		descriptionWordRankings.put("@", -100);
-		descriptionWordRankings.put("at", -20);
-		descriptionWordRankings.put("Instrumental", -100);
-		descriptionWordRankings.put("Remix", -30);
+		descriptionWordRankings.put("live", -50);
+		descriptionWordRankings.put("cover", -50);
+		descriptionWordRankings.put("@", -20);
+		descriptionWordRankings.put("Instrumental", -30);
 
 		Map<String, Integer> wordRankings = new HashMap<String, Integer>();
-		//good
-		wordRankings.put("lyrics", 70);
-		wordRankings.put("album", 70);
-		wordRankings.put("official", 20);
-		wordRankings.put("mp3", 70);
 		//bad
 		wordRankings.put("live", -100);
 		wordRankings.put("cover", -100);
-		wordRankings.put("@", -100);
-		wordRankings.put("at", -20);
-		wordRankings.put("Instrumental", -100);
-		wordRankings.put("Remix", -30);
-
+		wordRankings.put("Instrumental", -30);
+		wordRankings.put("Remix", -10);
+		wordRankings.put("@", -30);
 		wordRankings.put("", 0);
+		
 		for (String part : replaceSpecialWithSpace(artistName).split(" ")) {
 			part = part.toLowerCase();
 			wordRankings.put(part, 10);
@@ -116,6 +108,10 @@ public class Search {
 					score += descriptionWordRankings.get(part);
 				}
 			}
+			YoutubeIdRatings youtubeIdRatings = youtubeIdRatingDao.getYoutubeIdRatings(result.getVideoId());
+			if(youtubeIdRatings != null) {
+				score += youtubeIdRatings.getRating();
+			}
 			scoredResults.put(result, score);
 		}
 		//sort results
@@ -140,7 +136,7 @@ public class Search {
 		return string.replaceAll("[\\[\\]\\(\\)/\\.-]", " ");
 	}
 
-	public static List<SearchResult> getYoutubeResults(String artistName, String trackName) {
+	public List<SearchResult> getYoutubeResults(String artistName, String trackName) {
 		try {
 			List<SearchResult> results = new ArrayList<SearchResult>();
 			//load the xml search results
@@ -181,7 +177,8 @@ public class Search {
 	}
 
 	public static void main(String[] argv) throws ParserConfigurationException, SAXException, IOException {
-		List<String> ss = findYoutubeId("ratatat", "wildcat");
+		Search search = new Search();
+		List<String> ss = search.findYoutubeId("ratatat", "wildcat");
 		for (String s : ss) {
 			System.out.println(s);
 		}

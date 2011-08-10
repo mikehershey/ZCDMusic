@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -9,26 +9,26 @@
  */
 package me.zcd.music.controllers.tabs;
 
-import java.util.Hashtable;
+import java.net.HttpURLConnection;
+import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import me.zcd.leetml.Template;
+import me.zcd.leetml.LeetmlController;
 import me.zcd.leetml.bean.Bean;
 import me.zcd.leetml.bean.validation.ValidationRule;
 import me.zcd.leetml.bean.validation.rules.ManagedField;
 import me.zcd.leetml.bean.validation.rules.RequiredRule.Required;
 import me.zcd.music.model.db.Album;
+import me.zcd.music.model.db.Track;
 import me.zcd.music.model.db.dao.AlbumDao;
-import me.zcd.music.model.db.dao.TrackDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 
 /**
  *
  * @author mikehershey
  */
-public class ShowAlbum extends HttpServlet implements Bean{
+public class ShowAlbum extends LeetmlController implements Bean{
 	
 	private String albumKey;
 	
@@ -41,17 +41,20 @@ public class ShowAlbum extends HttpServlet implements Bean{
 	}
 	
 	@Override
-	public void service(HttpServletRequest req, HttpServletResponse resp) {
+	public String service() {
 		Album album = albumDao.getAlbum(albumKey);
-		Map<String, Object> replyContext = Template.createReplyContext();
-		replyContext.put("album", album);
-		replyContext.put("tracks", albumDao.getAllTracks(album));
-		Template.getInstance().render("showAlbum", replyContext, resp);
+		this.getTemplateContext().put("album", album);
+		List<Track> tracks = albumDao.getAllTracks(album);
+		if(tracks.size() >= 1) {
+			this.getTemplateContext().put("genre", tracks.get(0).getGenre());
+		}
+		this.getTemplateContext().put("tracks", tracks);
+		return "showAlbum";
 	}
 
 	@Override
-	public void onError(HttpServletRequest req, HttpServletResponse resp, Hashtable<String, ValidationRule> invalidFields) {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public void onError(HttpServletRequest req, HttpServletResponse resp, Map<String, ValidationRule> invalidFields) {
+		resp.setStatus(HttpURLConnection.HTTP_BAD_REQUEST);
 	}
 	
 }

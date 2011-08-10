@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -25,11 +25,14 @@ public class StringUtils {
 		String[] parts = name.split(" ");
 		StringBuilder sb = new StringBuilder();
 		for(String part : parts) {
-			if(part.length() < 2) {
+			if(part.length() < 1) {
 				continue;
 			}
 			sb.append(" ");
-			sb.append(part.substring(0,1).toUpperCase()).append(part.substring(1));
+			sb.append(part.substring(0,1).toUpperCase());
+			if(part.length() > 1) {
+				sb.append(part.substring(1));
+			}
 		}
 		return sb.toString().substring(1);
 	}

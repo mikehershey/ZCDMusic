@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -45,6 +45,16 @@ public class GaeTrackImpl implements Track {
 	
 	@Persistent
 	private String albumName;
+	
+	@Persistent
+	private int trackNumber;
+	
+	@Persistent
+	private Boolean youtubeIdBad;
+	
+	//public void GaeTrackImpl() {
+	//	this.youtubeIdBad = false;
+	//}
 
 	@Override
 	public void setKey(String key) {
@@ -134,6 +144,29 @@ public class GaeTrackImpl implements Track {
 			return StringUtils.formatName(this.genre);
 		}
 		return null;
+	}
+
+	@Override
+	public int getTrackNumber() {
+		return this.trackNumber;
+	}
+
+	@Override
+	public void setTrackNumber(int i) {
+		this.trackNumber = i;
+	}
+
+	@Override
+	public boolean isYoutubeIdBad() {
+		if(this.youtubeIdBad == null) {
+			this.youtubeIdBad = false;
+		}
+		return this.youtubeIdBad;
+	}
+
+	@Override
+	public void setYoutubeIdBad(boolean isBad) {
+		this.youtubeIdBad = isBad;
 	}
 	
 }

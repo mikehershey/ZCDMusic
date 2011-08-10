@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -9,8 +9,13 @@
  */
 package me.zcd.music.napster.api.resources;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AlbumResponseHackContainer {
 
@@ -90,6 +95,7 @@ public class AlbumResponseHackContainer {
 		private int popularity;
 		private String genre;
 		private String albumArtURL;
+		private String releaseDate;
 		
 		public long getId() {
 			return id;
@@ -117,6 +123,20 @@ public class AlbumResponseHackContainer {
 
 		public String getAlbumArtURL() {
 			return albumArtURL.replace("http://", "https://");
+		}
+		
+		public Date getReleaseDate() {
+			if(this.releaseDate != null) {
+				String date = this.releaseDate.split("T")[0];
+				SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				try {
+					return simpleDateFormat.parse(date);
+				} catch (ParseException ex) {
+					Logger.getLogger(AlbumResponseHackContainer.class.getName()).log(Level.SEVERE, null, ex);
+					return null;
+				}
+			}
+			return null;
 		}
 		
 	}

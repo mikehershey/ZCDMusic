@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -19,6 +19,7 @@ import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import java.text.SimpleDateFormat;
 import java.util.logging.Logger;
 import me.zcd.music.Settings;
 import me.zcd.music.model.db.Album;
@@ -126,6 +127,12 @@ public class GaeAlbumImpl implements Album {
 	@Override
 	public void addTrackKey(String key) {
 		this.trackKeys.add(key);
+	}
+
+	@Override
+	public String getFormattedReleaseDate() {
+		SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd, yyyy");
+		return sdf.format(releaseDate);
 	}
 	
 }

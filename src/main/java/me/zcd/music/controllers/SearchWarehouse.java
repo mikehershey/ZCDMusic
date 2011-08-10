@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -9,10 +9,8 @@
  */
 package me.zcd.music.controllers;
 
-import com.google.appengine.api.blobstore.BlobKey;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -28,10 +26,10 @@ import me.zcd.leetml.bean.validation.rules.ManagedField;
 import me.zcd.leetml.bean.validation.rules.RequiredRule.Required;
 import me.zcd.music.model.db.gae.GAEModel;
 import me.zcd.music.model.db.gae.jdo.GaeAlbumImpl;
-import me.zcd.music.model.db.gae.jdo.GaeArtistImpl;
 import me.zcd.music.model.db.gae.jdo.GaeTrackImpl;
 
 import com.google.gson.Gson;
+import java.util.Map;
 import me.zcd.music.model.db.Artist;
 import me.zcd.music.model.db.dao.ArtistDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
@@ -144,7 +142,7 @@ public class SearchWarehouse extends HttpServlet implements Bean {
 	}
 	
 	@Override
-	public void onError(HttpServletRequest req, HttpServletResponse resp, Hashtable<String, ValidationRule> arg2) {
+	public void onError(HttpServletRequest req, HttpServletResponse resp, Map<String, ValidationRule> arg2) {
 		try {
 			resp.getWriter().println("Validation error: search term is required.");
 		} catch (IOException e) {

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -19,7 +19,8 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import me.zcd.leetml.Template;
+import me.zcd.leetml.LeetmlController;
+import me.zcd.leetml.template.TemplateRenderer;
 import me.zcd.leetml.bean.Bean;
 import me.zcd.leetml.bean.validation.ValidationRule;
 
@@ -27,18 +28,17 @@ import me.zcd.leetml.bean.validation.ValidationRule;
  *
  * @author mikehershey
  */
-public class Login extends HttpServlet implements Bean {
+public class Login extends LeetmlController implements Bean {
 
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp) {
-		Map<String, Object> replyContext = Template.createReplyContext();
+	public String service() {
 		UserService userService = UserServiceFactory.getUserService();
-		replyContext.put("loginLink", userService.createLoginURL("/"));
-		Template.getInstance().render("login", replyContext, resp);
+		this.getTemplateContext().put("loginLink", userService.createLoginURL("/"));
+		return "login";
 	}
-	
+
 	@Override
-	public void onError(HttpServletRequest req, HttpServletResponse resp, Hashtable<String, ValidationRule> invalidFields) {
+	public void onError(HttpServletRequest req, HttpServletResponse resp, Map<String, ValidationRule> invalidFields) {
 		try {
 			resp.getWriter().println("Validation failed.");
 		} catch (IOException ex) {

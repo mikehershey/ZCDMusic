@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -11,13 +11,13 @@ package me.zcd.music.controllers.ajax.album;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
+import java.util.Map;
 import javax.servlet.http.HttpServlet;
 
 import me.zcd.leetml.bean.Bean;
@@ -28,8 +28,6 @@ import me.zcd.music.model.db.Album;
 import me.zcd.music.model.db.Track;
 import me.zcd.music.model.db.dao.AlbumDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
-import me.zcd.music.model.db.gae.jdo.GaeAlbumImpl;
-import me.zcd.music.model.db.gae.jdo.GaeTrackImpl;
 import me.zcd.music.utils.StringUtils;
 
 public class GetAlbumAsPlayables extends HttpServlet implements Bean {
@@ -46,6 +44,7 @@ public class GetAlbumAsPlayables extends HttpServlet implements Bean {
 		this.id = id;
 	}
 	
+	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) {
 		List<Playable> ret = new ArrayList<Playable>();
 		Album album = albumDao.getAlbum(id);
@@ -76,8 +75,7 @@ public class GetAlbumAsPlayables extends HttpServlet implements Bean {
 	}
 
 	@Override
-	public void onError(HttpServletRequest arg0, HttpServletResponse arg1,
-			Hashtable<String, ValidationRule> arg2) {
+	public void onError(HttpServletRequest arg0, HttpServletResponse arg1, Map<String, ValidationRule> arg2) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -20,6 +20,7 @@ import me.zcd.music.napster.api.ArtistSearch;
 import me.zcd.music.napster.api.Session;
 import me.zcd.music.napster.api.Tracks;
 import me.zcd.music.napster.api.resources.AlbumResponseHackContainer.AlbumResponse;
+import me.zcd.music.napster.api.resources.ArtistResultsResourceHackContainer;
 import me.zcd.music.napster.api.resources.ArtistResultsResourceHackContainer.ArtistResultsResource;
 import me.zcd.music.napster.api.resources.TrackResponseHolder.TrackResponse;
 
@@ -32,6 +33,7 @@ import me.zcd.music.model.db.dao.ImageDao;
 import me.zcd.music.model.db.dao.TrackDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 import me.zcd.music.model.db.utils.KeygenService;
+import me.zcd.music.utils.LevenshteinDistance;
 
 /**
  * Factory that uses napster rest API to get an artist/their albums/their
@@ -48,6 +50,7 @@ public class NapsterArtistFactory {
 	private AlbumDao albumDao = DaoProviderFactory.getProvider().getAlbumDao();
 	private TrackDao trackDao = DaoProviderFactory.getProvider().getTrackDao();
 	private ImageDao imageDao = DaoProviderFactory.getProvider().getImageDao();
+	private LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
 
 	/**
 	 * Gets all info about an artist, persists the info to the local DB, then
@@ -58,14 +61,23 @@ public class NapsterArtistFactory {
 	 */
 	public Artist LoadArtist(String artistName) {
 		ArtistResultsResource artistResults = new ArtistSearch().findArtists(artistName);
-		// assume you want result 1
-		me.zcd.music.napster.api.resources.ArtistResultsResourceHackContainer.Artist artistResponse = artistResults.getSearchResults().getArtist().get(0);
-		String artistKey = KeygenService.createArtistKey(artistResponse.getName());
+		//search the results and use string distance to find the best
+		ArtistResultsResourceHackContainer.Artist bestArtistResult = null;
+		int closest = Integer.MAX_VALUE;
+		for(ArtistResultsResourceHackContainer.Artist artistResponse : artistResults.getSearchResults().getArtist()) {
+			//this is expensive
+			int distance = levenshteinDistance.levenshteinDistance(artistResponse.getName(), artistName);
+			if(distance < closest) {
+				closest = distance;
+				bestArtistResult = artistResponse;
+			}
+		}
+		String artistKey = KeygenService.createArtistKey(bestArtistResult.getName());
 		Artist acheck = artistDao.getArtist(artistKey);
 		if (acheck != null) {
 			//TODO check for new albums.
 		} else {
-			return loadNewArtist(artistResponse);
+			return loadNewArtist(bestArtistResult);
 		}
 		return null;
 	}
@@ -103,6 +115,7 @@ public class NapsterArtistFactory {
 			Album album = albumDao.createNonpersistentAlbum(artist.getName(), albumResponse.getName());
 			byte[] data = Session.getSession().getAuthenticatedUrlData(albumResponse.getAlbumArtURL());
 			album.setAlbumArtKey(imageDao.saveImage(data, "image/jpeg"));
+			album.setReleaseDate(albumResponse.getReleaseDate());
 			
 			allTracks.addAll(loadAllTracks(albumResponse.getId(), album, artist));
 			allAlbums.add(album);
@@ -127,12 +140,15 @@ public class NapsterArtistFactory {
 		List<Track> tracks = new ArrayList<Track>();
 		try {
 			TrackResponse tracksResponse = new Tracks().getTracksByAlbumId(albumId);
+			int i = 1;
 			for (me.zcd.music.napster.api.resources.TrackResponseHolder.Track tr : tracksResponse.getAlbumInfo().getTrack()) {
 				Track track = trackDao.createNonpersistentTrack(album.getArtistName(), album.getName(), tr.getTrackName());
 				track.setGenre(tr.getGenre());
+				track.setTrackNumber(i);
 				album.addTrackKey(track.getKey());
 				artist.addTrackKey(track.getKey());
 				tracks.add(track);
+				i++;
 			} 
 		} catch(Exception e) {
 			log.log(Level.SEVERE, "", e);

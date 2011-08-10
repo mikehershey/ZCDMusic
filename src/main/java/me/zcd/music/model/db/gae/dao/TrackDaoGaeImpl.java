@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -9,9 +9,10 @@
  */
 package me.zcd.music.model.db.gae.dao;
 
-import com.google.appengine.api.datastore.Key;
+import java.util.ArrayList;
 import java.util.List;
 import javax.jdo.PersistenceManager;
+import me.zcd.music.model.DownVoteReason;
 import me.zcd.music.model.db.Track;
 import me.zcd.music.model.db.dao.TrackDao;
 import me.zcd.music.model.db.gae.GAEModel;
@@ -25,7 +26,7 @@ import me.zcd.music.model.db.utils.KeygenService;
 public class TrackDaoGaeImpl implements TrackDao {
 	
 	@Override
-	public Track getTrack(Key key) {
+	public Track getTrack(String key) {
 		PersistenceManager pm = GAEModel.get().getPersistenceManager();
 		Track t = null;
 		try {
@@ -37,15 +38,23 @@ public class TrackDaoGaeImpl implements TrackDao {
 	}
 
 	@Override
-	public Track getTrack(String key) {
+	public List<Track> getTracks(List<String> trackKeys) {
 		PersistenceManager pm = GAEModel.get().getPersistenceManager();
-		Track t = null;
+		List<Track> ret = new ArrayList<Track>();
 		try {
-			t = pm.getObjectById(GaeTrackImpl.class, key);
+			for (String key : trackKeys) {
+				Track t = null;
+				try {
+					t = pm.getObjectById(GaeTrackImpl.class, key);
+					ret.add(t);
+				} catch(Exception e) {
+					//TODO log
+				}
+			}
 		} finally {
 			pm.close();
 		}
-		return t;
+		return ret;
 	}
 
 	@Override
@@ -79,5 +88,17 @@ public class TrackDaoGaeImpl implements TrackDao {
 			pm.close();
 		}
 	}
-	
+
+	@Override
+	public Track invalidateYoutubeId(String trackId) {
+		PersistenceManager pm = GAEModel.get().getPersistenceManager();
+		Track t = null;
+		try {
+			t = pm.getObjectById(GaeTrackImpl.class, trackId);
+			t.setYoutubeIdBad(true);
+		} finally {
+			pm.close();
+		}
+		return t;
+	}
 }

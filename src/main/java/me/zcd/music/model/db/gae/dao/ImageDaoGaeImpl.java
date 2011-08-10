@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -37,31 +37,46 @@ public class ImageDaoGaeImpl implements ImageDao{
 	@Override
 	public String saveImage(byte[] imageData, String mimeType) {
 		if(imageData == null) {
+			log.log(Level.WARNING, "Someone just tried to save a null image: ", Thread.currentThread().getStackTrace());
 			return null;
 		}
-		try {
-			FileService fileService = FileServiceFactory.getFileService();
+		boolean success = false;
+		BlobKey blobKey = null;
+		for(int i = 0; i < 3 && !success; i++) {
+			FileWriteChannel writeChannel = null;
+			try {
+				FileService fileService = FileServiceFactory.getFileService();
+				AppEngineFile file = fileService.createNewBlobFile(mimeType);
+				boolean lock = true;
+				writeChannel = fileService.openWriteChannel(file, lock);
+				
+				OutputStream out = Channels.newOutputStream(writeChannel);
+				if(out != null) {
+					out.write(imageData);
+					out.close();
+				}
+				writeChannel.closeFinally();
+				writeChannel.close();
 
-			AppEngineFile file = fileService.createNewBlobFile(mimeType);
-
-			// Open a channel to write to it
-			boolean lock = true;
-			FileWriteChannel writeChannel = fileService.openWriteChannel(file, lock);
-
-			OutputStream out = Channels.newOutputStream(writeChannel);
-			if(out != null) {
-				out.write(imageData);
-				out.close();
+				blobKey = fileService.getBlobKey(file);
+				if(blobKey != null) {
+					success = true;
+				}
+			} catch (Exception ex) {
+				log.log(Level.WARNING, "Possibly trying again (3 tries)", ex);
+			} finally {
+				try {
+					
+				} catch (Exception ex) {
+					log.log(Level.INFO, "Write Channel could not be closed, probably was never opened.", ex);
+				}
 			}
-			
-			writeChannel.closeFinally();
-			
-			BlobKey blobKey = fileService.getBlobKey(file);
-			log.info("Stored image at: " + blobKey);
-			return blobKey.getKeyString();
-		} catch (Exception ex) {
-			Logger.getLogger(ImageDaoGaeImpl.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		if(blobKey == null) {
+			log.severe("ImageDao was asked to store an image, with valid image data, but failed to do so.");
 			return null;
+		} else {
+			return blobKey.getKeyString();
 		}
 	}
 

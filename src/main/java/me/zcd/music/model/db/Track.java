@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -8,8 +8,6 @@
  * commercial purposes.
  */
 package me.zcd.music.model.db;
-
-import me.zcd.music.Settings;
 
 /**
  *
@@ -44,5 +42,13 @@ public interface Track {
 	public void setGenre(String genre);
 	
 	public String getGenre();
+	
+	public int getTrackNumber();
+	
+	public void setTrackNumber(int i);
+	
+	public boolean isYoutubeIdBad();
+	
+	public void setYoutubeIdBad(boolean isBad);
 	
 }

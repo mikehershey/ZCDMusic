@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -9,10 +9,6 @@
  */
 package me.zcd.music.controllers;
 
-import com.google.appengine.api.NamespaceManager;
-import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
-
-import java.util.Hashtable;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,17 +19,13 @@ import me.zcd.leetml.bean.validation.rules.ManagedField;
 import me.zcd.leetml.bean.validation.rules.RequiredRule.Required;
 import me.zcd.music.youtube.api.Search;
 
-import com.google.appengine.api.taskqueue.Queue;
-import com.google.appengine.api.taskqueue.QueueFactory;
-import com.google.appengine.api.taskqueue.TaskOptions.Method;
+import java.util.Map;
 import javax.servlet.http.HttpServlet;
 import me.zcd.music.model.db.Track;
 import me.zcd.music.model.db.dao.TrackDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
-import me.zcd.music.model.db.gae.jdo.GaeTrackImpl;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 
 /**
  * Youtube ids are found on demand as they are requested. If a video does not
@@ -63,23 +55,16 @@ public class FindYoutubeIdForTrack extends HttpServlet implements Bean {
 	public void service(HttpServletRequest req, HttpServletResponse resp) {
 		// get the url
 		try {
-			System.out.println("Looking up youtube song for track: " + this.trackKey);
-			System.out.println(NamespaceManager.get());
 			//lookup the track based on ID
 			log.info("Looking up youtube song for track: " + this.trackKey);
 			Track track = this.trackDao.getTrack(this.trackKey);
 			System.out.println("Found track info: " + track.getArtistName() + " - " + track.getTitle());
 			String youtubeId = null;
-			if(track.getYoutubeLocation() != null && !track.getYoutubeLocation().equals("")) {
+			if(track.getYoutubeLocation() != null && !track.getYoutubeLocation().isEmpty() && !track.isYoutubeIdBad()) {
 				youtubeId = track.getYoutubeLocation();
 			} else {
-				youtubeId = Search.findYoutubeId(track.getArtistName(), track.getTitle()).get(0);
-				Queue queue = QueueFactory.getDefaultQueue();
-				queue.add(withUrl("/tasks/DoAddYoutubeIdToTrack.h7m1")
-					.param("trackKey", this.trackKey)
-					.param("youtubeId", youtubeId)
-					.param("basicAuth", "ewhjkasdmbg3489ufhast7")
-					.method(Method.GET));
+				youtubeId = new Search().findYoutubeId(track.getArtistName(), track.getTitle()).get(0);
+				trackDao.setYoutubeId(this.trackKey, youtubeId);
 			}
 			resp.getWriter().println(youtubeId);
 		} catch (Exception e) {
@@ -88,8 +73,7 @@ public class FindYoutubeIdForTrack extends HttpServlet implements Bean {
 	}
 
 	@Override
-	public void onError(HttpServletRequest req, HttpServletResponse resp,
-			Hashtable<String, ValidationRule> arg2) {
+	public void onError(HttpServletRequest req, HttpServletResponse resp, Map<String, ValidationRule> arg2) {
 		resp.setStatus(400);
 	}
 

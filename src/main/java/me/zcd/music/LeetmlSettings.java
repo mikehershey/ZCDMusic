@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -21,12 +21,17 @@ public class LeetmlSettings extends DefaultSettings {
 	
 	@Override
 	public boolean isStripFormatting() {
-		return false;
+		return true;
 	}
 	
 	@Override
 	public ErrorPage get500Page() {
 		return new Email500Error();
+	}
+
+	@Override
+	public int getTemplateRecacheInterval() {
+		return 0;
 	}
 	
 }

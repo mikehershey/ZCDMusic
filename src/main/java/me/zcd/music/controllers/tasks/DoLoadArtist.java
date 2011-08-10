@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -9,7 +9,7 @@
  */
 package me.zcd.music.controllers.tasks;
 
-import java.util.Hashtable;
+import java.util.Map;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -48,7 +48,7 @@ public class DoLoadArtist extends HttpServlet implements Bean {
 	}
 	
 	@Override
-	public void onError(HttpServletRequest arg0, HttpServletResponse arg1, Hashtable<String, ValidationRule> arg2) {
+	public void onError(HttpServletRequest arg0, HttpServletResponse arg1, Map<String, ValidationRule> arg2) {
 		arg1.setStatus(400);
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
+ * Copyright Â© 2011 Mike Hershey (http://mikehershey.com | http://zcd.me) 
  * 
  * See the LICENSE file included with this project for full permissions. If you
  * did not receive a copy of the license email mikehershey32@gmail.com for a copy.
@@ -9,19 +9,40 @@
  */
 package me.zcd.music.controllers;
 
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import me.zcd.leetml.Template;
+import java.util.List;
+import me.zcd.leetml.LeetmlController;
+import me.zcd.music.model.db.Track;
+import me.zcd.music.model.db.UserLibrary;
+import me.zcd.music.model.db.dao.UserLibraryDao;
+import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
+import me.zcd.music.user.UserService;
+import me.zcd.music.user.UserServiceFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  *
  * @author mikehershey
  */
-public class Index extends HttpServlet {
+public class Index extends LeetmlController {
 	
-	public void service(HttpServletRequest req, HttpServletResponse resp) {
-		Template.getInstance().render("homepage", null, resp);
+	UserService userService = UserServiceFactory.getUserService();
+	UserLibraryDao userLibraryDao = DaoProviderFactory.getProvider().getUserLibraryDao();
+	Log log = LogFactory.getLog(Index.class);
+	
+	@Override
+	public String service() {
+		//check the current user
+		String email = userService.getCurrentUsersEmailAddress();
+		if(email != null && !email.isEmpty()) {
+			this.getTemplateContext().put("userEmail", email);
+			UserLibrary userLibrary = userLibraryDao.getUserLibrary(email);
+			if(userLibrary != null) {
+				List<Track> tracks = userLibraryDao.getAllTracksFromLibrary(userLibrary);
+				this.getTemplateContext().put("userTracks", tracks);
+			}
+		}
+		return "homepage";
 	}
 	
 }
