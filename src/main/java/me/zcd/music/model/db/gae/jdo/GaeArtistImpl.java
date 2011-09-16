@@ -18,12 +18,19 @@ import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import java.util.ArrayList;
+import javax.jdo.annotations.NotPersistent;
 import me.zcd.music.model.db.Artist;
+import me.zcd.music.model.db.dao.ArtistDao;
+import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 import me.zcd.music.utils.StringUtils;
 
 @PersistenceCapable(detachable = "true")
 public class GaeArtistImpl implements Artist {
 
+	@NotPersistent
+	ArtistDao artistDao = DaoProviderFactory.getProvider().getArtistDao();
+	
 	@PrimaryKey
 	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
 	private Key key;
@@ -42,7 +49,19 @@ public class GaeArtistImpl implements Artist {
 	
 	@Persistent
 	private String genre;
+	
+	@Persistent
+	private List<String> searchTerms = new ArrayList<String>();
 
+	private void migrateToHavingSearchTerms() {
+		if(searchTerms.size() < 1) {
+			for(String titlePart : StringUtils.stripSpecialCharacters(name).split(" ")) {
+				this.searchTerms.add(titlePart);
+			}
+			artistDao.persistArtist(this);
+		}
+	}
+	
 	@Override
 	public String getKey() {
 		return this.key.getName();
@@ -119,6 +138,10 @@ public class GaeArtistImpl implements Artist {
 	@Override
 	public String getName() {
 		if(this.name != null) {
+			
+			//TODO remove this once migration is finished
+			migrateToHavingSearchTerms();
+			
 			return StringUtils.formatName(this.name);
 		}
 		return null;

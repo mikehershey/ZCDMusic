@@ -14,12 +14,19 @@ public class Settings {
 	public static final String KEY_SEPERATOR = ";;;";
 	
 	public enum SupportedDatabases {
-		AppEngine,
-		Cassandra
+		AppEngine
 	};
 	
 	public static final SupportedDatabases CURRENT_DATABASE = SupportedDatabases.AppEngine;
 	
 	public static final String errorEmailRecipiant = "errors@zcd.me";
+	
+	public enum MusicDiscoveryServices {
+		MusicBrainz
+	}
+	
+	public static MusicDiscoveryServices getService() {
+		return MusicDiscoveryServices.MusicBrainz;
+	}
 	
 }

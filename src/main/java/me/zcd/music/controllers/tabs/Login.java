@@ -12,15 +12,10 @@ package me.zcd.music.controllers.tabs;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import java.io.IOException;
-import java.util.Hashtable;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import me.zcd.leetml.LeetmlController;
-import me.zcd.leetml.template.TemplateRenderer;
 import me.zcd.leetml.bean.Bean;
 import me.zcd.leetml.bean.validation.ValidationRule;
 
@@ -42,7 +37,7 @@ public class Login extends LeetmlController implements Bean {
 		try {
 			resp.getWriter().println("Validation failed.");
 		} catch (IOException ex) {
-			Logger.getLogger(Login.class.getName()).log(Level.SEVERE, null, ex);
+			log.error("FAILED WRITING ON ERROR", ex);
 		}
 	}
 	

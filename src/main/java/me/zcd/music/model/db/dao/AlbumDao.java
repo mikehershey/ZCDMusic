@@ -19,5 +19,6 @@ public interface AlbumDao {
 	public List<Track> getAllTracks(Album album);
 	public Album createNonpersistentAlbum(String artistName, String albumName);
 	public void persistAllAlbums(List<Album> albums);
+	public void persistAlbum(Album album);
 	
 }

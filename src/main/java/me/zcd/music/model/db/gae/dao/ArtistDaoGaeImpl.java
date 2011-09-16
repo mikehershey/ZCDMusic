@@ -17,11 +17,11 @@ import javax.jdo.PersistenceManager;
 import com.google.appengine.api.datastore.Key;
 import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.Query;
+import me.zcd.leetml.gae.GAEModel;
 import me.zcd.music.model.db.Album;
 import me.zcd.music.model.db.Artist;
 
 import me.zcd.music.model.db.dao.ArtistDao;
-import me.zcd.music.model.db.gae.GAEModel;
 import me.zcd.music.model.db.gae.jdo.GaeAlbumImpl;
 import me.zcd.music.model.db.gae.jdo.GaeArtistImpl;
 import me.zcd.music.model.db.utils.KeygenService;

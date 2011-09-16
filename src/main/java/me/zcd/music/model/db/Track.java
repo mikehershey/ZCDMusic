@@ -47,8 +47,4 @@ public interface Track {
 	
 	public void setTrackNumber(int i);
 	
-	public boolean isYoutubeIdBad();
-	
-	public void setYoutubeIdBad(boolean isBad);
-	
 }

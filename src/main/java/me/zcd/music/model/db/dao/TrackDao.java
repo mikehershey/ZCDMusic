@@ -10,21 +10,16 @@
 package me.zcd.music.model.db.dao;
 
 import java.util.List;
-import me.zcd.music.model.DownVoteReason;
+import me.zcd.music.model.VoteReason;
 import me.zcd.music.model.db.Track;
 
 public interface TrackDao {
 	
 	public Track getTrack(String id);
-	
 	public List<Track> getTracks(List<String> trackKeys);
-	
 	public Track createNonpersistentTrack(String artistName, String albumName, String trackName);
-	
+	public void persistTrack(Track track);
 	public void persistAllTracks(List<Track> tracks);
-	
 	public void setYoutubeId(String trackId, String youtubeId);
-	
-	public Track invalidateYoutubeId(String trackId);
 	
 }

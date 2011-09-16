@@ -10,8 +10,6 @@
 package me.zcd.music;
 
 import me.zcd.leetml.DefaultSettings;
-import me.zcd.leetml.dispatcher.error.ErrorPage;
-import me.zcd.music.errors.Email500Error;
 
 /**
  *
@@ -23,15 +21,15 @@ public class LeetmlSettings extends DefaultSettings {
 	public boolean isStripFormatting() {
 		return true;
 	}
-	
-	@Override
-	public ErrorPage get500Page() {
-		return new Email500Error();
-	}
 
 	@Override
 	public int getTemplateRecacheInterval() {
 		return 0;
+	}
+
+	@Override
+	public String getRootPackage() {
+		return "me.zcd.music";
 	}
 	
 }

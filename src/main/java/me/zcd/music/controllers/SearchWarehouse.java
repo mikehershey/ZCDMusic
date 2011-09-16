@@ -12,7 +12,6 @@ package me.zcd.music.controllers;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
@@ -24,19 +23,21 @@ import me.zcd.leetml.bean.Bean;
 import me.zcd.leetml.bean.validation.ValidationRule;
 import me.zcd.leetml.bean.validation.rules.ManagedField;
 import me.zcd.leetml.bean.validation.rules.RequiredRule.Required;
-import me.zcd.music.model.db.gae.GAEModel;
 import me.zcd.music.model.db.gae.jdo.GaeAlbumImpl;
 import me.zcd.music.model.db.gae.jdo.GaeTrackImpl;
 
 import com.google.gson.Gson;
 import java.util.Map;
+import me.zcd.leetml.gae.GAEModel;
+import me.zcd.leetml.logging.Log;
+import me.zcd.leetml.logging.LogFactory;
 import me.zcd.music.model.db.Artist;
 import me.zcd.music.model.db.dao.ArtistDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 
 public class SearchWarehouse extends HttpServlet implements Bean {
 	
-	Logger log = Logger.getLogger(SearchWarehouse.class.getName());
+	Log log = LogFactory.getLogger(SearchWarehouse.class);
 
 	private static final long serialVersionUID = 1L;
 	
@@ -65,7 +66,7 @@ public class SearchWarehouse extends HttpServlet implements Bean {
 			this.term = this.term.toLowerCase().trim();
 			List<Artist> artistResults = this.artistDao.getArtistsThatStartWith(term);
 			for(Artist a : artistResults) {
-				matches.add(new JsonResult(a.getKey(), "ARTIST", a.getName(), null, null, a.getArtistArtKey(), null));
+				matches.add(new JsonResult(a.getKey(), "ARTIST", a.getName(), null, null, a.getArtistArtKey(), null, null));
 			}
 				
 		}
@@ -88,7 +89,7 @@ public class SearchWarehouse extends HttpServlet implements Bean {
 				pm.close();
 			}
 			for(GaeAlbumImpl a : albumResults) {
-				matches.add(new JsonResult(a.getKey(),"ALBUM", a.getArtistName(), a.getName(), null, a.getAlbumArtKey(), null));
+				matches.add(new JsonResult(a.getKey(),"ALBUM", a.getArtistName(), a.getName(), null, a.getAlbumArtKey(), null, null));
 			}
 		}
 		if(type.equals("ANY") || type.equals("TRACK")) {
@@ -110,7 +111,7 @@ public class SearchWarehouse extends HttpServlet implements Bean {
 				pm.close();
 			}
 			for(GaeTrackImpl t : trackResults) {
-				matches.add(new JsonResult(t.getKey(), "TRACK", t.getArtistName(), t.getAlbumName(), t.getTitle(), null, t.getYoutubeLocation()));
+				matches.add(new JsonResult(t.getKey(), "TRACK", t.getArtistName(), t.getAlbumName(), t.getTitle(), null, t.getYoutubeLocation(), Integer.toString(t.getTrackNumber())));
 			}
 		}
 		Gson gson = new Gson();
@@ -123,7 +124,7 @@ public class SearchWarehouse extends HttpServlet implements Bean {
 	}
 	
 	public static class JsonResult {
-		public JsonResult(String key, String type, String artist, String album, String track, String imageUrl, String youtubeId) {
+		public JsonResult(String key, String type, String artist, String album, String track, String imageUrl, String youtubeId, String trackNumber) {
 			this.key = key;
 			this.type = type;
 			this.artist = artist;
@@ -131,6 +132,7 @@ public class SearchWarehouse extends HttpServlet implements Bean {
 			this.track = track;
 			this.imageUrl = imageUrl;
 			this.youtubeId = youtubeId;
+			this.trackNumber = trackNumber;
 		}
 		public String type;
 		public String artist;
@@ -139,6 +141,7 @@ public class SearchWarehouse extends HttpServlet implements Bean {
 		public String imageUrl;
 		public String key;
 		public String youtubeId;
+		public String trackNumber;
 	}
 	
 	@Override

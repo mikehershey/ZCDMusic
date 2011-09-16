@@ -21,11 +21,14 @@ import me.zcd.music.youtube.api.Search;
 
 import java.util.Map;
 import javax.servlet.http.HttpServlet;
+import me.zcd.leetml.logging.Log;
+import me.zcd.leetml.logging.LogFactory;
 import me.zcd.music.model.db.Track;
+import me.zcd.music.model.db.UserLibrary;
 import me.zcd.music.model.db.dao.TrackDao;
+import me.zcd.music.model.db.dao.UserLibraryDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import me.zcd.music.user.UserServiceFactory;
 
 /**
  * Youtube ids are found on demand as they are requested. If a video does not
@@ -39,11 +42,12 @@ import org.apache.log4j.Logger;
  */
 public class FindYoutubeIdForTrack extends HttpServlet implements Bean {
 
-	Logger log = Logger.getLogger(FindYoutubeIdForTrack.class);
+	Log log = LogFactory.getLogger(FindYoutubeIdForTrack.class);
 	private static final long serialVersionUID = 1L;
 	private String trackKey;
 
 	private TrackDao trackDao = DaoProviderFactory.getProvider().getTrackDao();
+	private UserLibraryDao userLibraryDao = DaoProviderFactory.getProvider().getUserLibraryDao();
 	
 	@ManagedField
 	@Required
@@ -55,20 +59,25 @@ public class FindYoutubeIdForTrack extends HttpServlet implements Bean {
 	public void service(HttpServletRequest req, HttpServletResponse resp) {
 		// get the url
 		try {
+			String email = UserServiceFactory.getUserService().getCurrentUsersEmailAddress();
+			if(email != null) {
+				//update the users play count
+				userLibraryDao.incrementTrackPlayCount(trackKey, email);
+			}
 			//lookup the track based on ID
 			log.info("Looking up youtube song for track: " + this.trackKey);
 			Track track = this.trackDao.getTrack(this.trackKey);
 			System.out.println("Found track info: " + track.getArtistName() + " - " + track.getTitle());
 			String youtubeId = null;
-			if(track.getYoutubeLocation() != null && !track.getYoutubeLocation().isEmpty() && !track.isYoutubeIdBad()) {
+			if(track.getYoutubeLocation() != null && !track.getYoutubeLocation().isEmpty()) {
 				youtubeId = track.getYoutubeLocation();
 			} else {
-				youtubeId = new Search().findYoutubeId(track.getArtistName(), track.getTitle()).get(0);
+				youtubeId = new Search().findYoutubeId(track.getArtistName(), track.getTitle(), track.getKey()).get(0);
 				trackDao.setYoutubeId(this.trackKey, youtubeId);
 			}
 			resp.getWriter().println(youtubeId);
 		} catch (Exception e) {
-			log.log(Level.ERROR, "Exception finding youtube ID", e);
+			log.error("Exception finding youtube ID", e);
 		}
 	}
 

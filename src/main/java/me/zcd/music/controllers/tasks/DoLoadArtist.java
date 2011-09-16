@@ -19,7 +19,8 @@ import me.zcd.leetml.bean.Bean;
 import me.zcd.leetml.bean.validation.ValidationRule;
 import me.zcd.leetml.bean.validation.rules.ManagedField;
 import me.zcd.leetml.bean.validation.rules.RequiredRule.Required;
-import me.zcd.music.napster.NapsterArtistFactory;
+import me.zcd.music.musicdiscovery.api.MusicDiscovery;
+import me.zcd.music.musicdiscovery.napster.NapsterArtistFactory;
 
 public class DoLoadArtist extends HttpServlet implements Bean {
 
@@ -42,7 +43,7 @@ public class DoLoadArtist extends HttpServlet implements Bean {
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) {
 		if(this.basicAuth.equals("ksh982oihfa83yhuhf3")) {
-			new NapsterArtistFactory().LoadArtist(this.artistName);
+			new MusicDiscovery().discoverArtist(artistName);
 			resp.setStatus(200);
 		}
 	}

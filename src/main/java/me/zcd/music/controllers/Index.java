@@ -9,40 +9,66 @@
  */
 package me.zcd.music.controllers;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import me.zcd.leetml.LeetmlController;
+import me.zcd.leetml.bean.Bean;
+import me.zcd.leetml.bean.validation.ValidationRule;
+import me.zcd.leetml.bean.validation.rules.ManagedField;
+import me.zcd.music.model.UserLibraryTrack;
 import me.zcd.music.model.db.Track;
 import me.zcd.music.model.db.UserLibrary;
 import me.zcd.music.model.db.dao.UserLibraryDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 import me.zcd.music.user.UserService;
 import me.zcd.music.user.UserServiceFactory;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  *
  * @author mikehershey
  */
-public class Index extends LeetmlController {
+public class Index extends LeetmlController implements Bean {
 	
 	UserService userService = UserServiceFactory.getUserService();
 	UserLibraryDao userLibraryDao = DaoProviderFactory.getProvider().getUserLibraryDao();
-	Log log = LogFactory.getLog(Index.class);
+	
+	private String showLibrary;
+
+	@ManagedField
+	public void setShowLibrary(String showLibrary) {
+		this.showLibrary = showLibrary;
+	}
 	
 	@Override
 	public String service() {
+		if(this.req.getHeader("User-Agent").toLowerCase().contains("msie")) {
+			return "noIE";
+		}
 		//check the current user
-		String email = userService.getCurrentUsersEmailAddress();
+		String userEmail = userService.getCurrentUsersEmailAddress();
+		String email = showLibrary;
+		if(email == null) {
+			email = userEmail;
+		}
+		Set<UserLibraryTrack> tracks;
 		if(email != null && !email.isEmpty()) {
-			this.getTemplateContext().put("userEmail", email);
+			this.getTemplateContext().put("userEmail", userEmail);
 			UserLibrary userLibrary = userLibraryDao.getUserLibrary(email);
 			if(userLibrary != null) {
-				List<Track> tracks = userLibraryDao.getAllTracksFromLibrary(userLibrary);
+				tracks = userLibrary.getTracks();
 				this.getTemplateContext().put("userTracks", tracks);
 			}
 		}
 		return "homepage";
+	}
+
+	@Override
+	public void onError(HttpServletRequest req, HttpServletResponse resp, Map<String, ValidationRule> invalidFields) {
+		resp.setStatus(400);
 	}
 	
 }

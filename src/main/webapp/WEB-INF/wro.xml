@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<groups xmlns="http://www.isdc.ro/wro" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
+
+	<group name='all'>
+		<js>/jquery/jquery-1.5.1.min.js</js>
+		<js>/jquery/jquery-ui-1.8.13.custom.min.js</js>
+		<js>/tablesorter/jquery.tablesorter.min.js</js>
+		<js>/javascripts/main.js</js>
+		<js>/javascripts/RequestTab.js</js>
+		<js>/javascripts/LogTab.js</js>
+		<js>/javascripts/MessageManager.js</js>
+		<js>/jquery.loading/jquery.loading.1.6.4.min.js</js>
+		<css>/jquery/jquery-ui-1.8.13.custom.css</css>
+		<css>/styles/main.css</css>
+		<css>/tablesorter/style.css</css>
+		<css>/jquery.loading/jquery.loading.1.6.css</css>
+	</group>
+
+</groups>

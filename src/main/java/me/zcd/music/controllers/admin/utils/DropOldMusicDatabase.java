@@ -16,8 +16,7 @@ import javax.jdo.Query;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import me.zcd.music.model.db.gae.GAEModel;
+import me.zcd.leetml.gae.GAEModel;
 
 public class DropOldMusicDatabase extends HttpServlet {
 

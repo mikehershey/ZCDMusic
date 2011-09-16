@@ -10,9 +10,7 @@
 package me.zcd.music.model.db.dao;
 
 import java.util.List;
-import me.zcd.music.model.db.Track;
 import me.zcd.music.model.db.UserLibrary;
-import sun.net.idn.StringPrep;
 
 /**
  *
@@ -20,9 +18,11 @@ import sun.net.idn.StringPrep;
  */
 public interface UserLibraryDao {
 
+	public UserLibrary persistUserLibrary(UserLibrary library);
 	public UserLibrary getUserLibrary(String emailAddress);
-	public List<Track> getAllTracksFromLibrary(UserLibrary library);
 	public UserLibrary addTracksToLibrary(List<String> trackKeys, String emailAddress);
 	public UserLibrary addTracksToLibrary(String[] trackKeys, String emailAddress);
+	public UserLibrary incrementTrackPlayCount(String trackKey, String emailAddress);
+	
 
 }

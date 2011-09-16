@@ -4,7 +4,7 @@
 <div class="tab_other_content_block">
 	<div class="tab_other_content_left_column">
 		$if(album.albumArtKey)$
-			<img src="/utils/showImage.h7m1?id=$album.albumArtKey$" class="show_album_picture" />
+			<img src="$album.albumImage$" class="show_album_picture" />
 		$else$
 			<img src="/images/default_album.jpg" class="show_album_picture" />
 		$endif$
@@ -34,7 +34,7 @@
 			<tbody>
 			$tracks:{ track |
 				<tr class="addable_track">
-					<td>$track.trackNumber$</td>
+					<td class="track_number">$track.trackNumber$</td>
 					<td class="library_track">$track.title$</td>
 					<td class="library_artist">$track.artistName$</td>
 					<td class="library_album">$track.albumName$</td>

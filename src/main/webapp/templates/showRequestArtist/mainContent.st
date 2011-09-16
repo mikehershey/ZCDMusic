@@ -1,14 +1,17 @@
-<div id="request_thanks" style="display:none" title="Thanks, we got it">
-	<p>The monkeys are dispatched and your music should be loaded in the next 5 minutes or so. We'll try to let you know when its done loading.</p>
-</div>
 <div>
 	<div class="tab_header">
-		<h2 class="tab_title">Request:</h2>
+		<h2 class="tab_title">Request > Add an Artist:</h2>
 	</div>
-	<form id="request_form" action="#">
-		<input type="text" name="artistName" class="big_search_box" id="request_box" value="Enter an artist" style="width:80%"/><input type="submit" name="submit" class="submit_search" value="submit"/>
-	</form>
-	<em>Enter an artist and hit submit. Upon submission we will dispatch a team of music loving monkeys to find and save all music recorded by your artist.</em><br/><br/> 
-	<em>Note: it may take up to five minutes for new music to be added, meanwhile feel free to browse around or do whatever. We'll do our best to let you know when its been added, but no gaurentees.</em>
+	<div class="tab_other_content_block" style="margin: 30px;">
+		<h3>Add an artist</h3>
+		<form id="request_form" action="#">
+			<input type="text" name="artistName" class="big_search_box" id="request_box" value="Enter an artist"/>
+			<input type="submit" name="submit" value="submit"/>
+		</form>
+		<p>This wizard will guide you through the process of adding a new artist to 
+		our music database. The system is automated and gathers data from MusicBrainz. 
+		To get started please enter the exact name of the artist you wish to add.</p>
+		<p>If you have any questions, need help, want to suggest a new feature, or report a bug please 
+		don't hesitate to email us at <a href="mailto:support@zcd.me">support@zcd.me</a></p>
+	</div>
 </div>
-<div id="search_result_holder"></div>	

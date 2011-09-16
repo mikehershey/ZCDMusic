@@ -26,13 +26,13 @@ import java.util.logging.Level;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import me.zcd.music.utils.URLFetch;
 import me.zcd.music.utils.XmlParser;
 import java.util.logging.Logger;
 import me.zcd.music.model.db.YoutubeIdRatings;
 import me.zcd.music.model.db.dao.YoutubeIdRatingDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 
+import me.zcd.music.utils.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -44,6 +44,24 @@ public class Search {
 
 	private YoutubeIdRatingDao youtubeIdRatingDao = DaoProviderFactory.getProvider().getYoutubeIdRatingDao();
 	
+	private static Map<String, Integer> badWordRankings = new HashMap<String, Integer>();
+	static {
+		badWordRankings.put("live", -100);
+		badWordRankings.put("cover", -100);
+		badWordRankings.put("Instrumental", -50);
+		badWordRankings.put("Remix", -30);
+		badWordRankings.put("@", -30);
+		badWordRankings.put("", 0);
+		badWordRankings.put("lyrics", 20);
+		badWordRankings.put("offical", 20);
+	}
+	private static Map<String, Integer> descriptionWordRankings = new HashMap<String, Integer>();
+	static {
+		badWordRankings.put("live", -50);
+		badWordRankings.put("cover", -50);
+		badWordRankings.put("Instrumental", -30);
+	}
+	
 	/**
 	 * Attempts to find a link for the specified song. 
 	 * It does this by searching youtube for "[artist] [song] lyrics"
@@ -54,42 +72,35 @@ public class Search {
 	 * @throws IOException 
 	 * @throws SAXException 
 	 */
-	public List<String> findYoutubeId(String artistName, String trackName) throws ParserConfigurationException, SAXException, IOException {
+	public List<String> findYoutubeId(String artistName, String trackName, String forTrackid) throws ParserConfigurationException, SAXException, IOException {
 		List<SearchResult> results = getYoutubeResults(artistName, trackName);
-		return findBestResult(results, artistName, trackName);
+		return findBestResult(results, artistName, trackName, forTrackid);
 	}
 
 	/**
 	 * Applies an algorithm to find the best match based on title/views
 	 */
-	private List<String> findBestResult(List<SearchResult> results, String artistName, String trackName) {
-		Map<String, Integer> descriptionWordRankings = new HashMap<String, Integer>();
-		//bad
-		descriptionWordRankings.put("live", -50);
-		descriptionWordRankings.put("cover", -50);
-		descriptionWordRankings.put("@", -20);
-		descriptionWordRankings.put("Instrumental", -30);
-
-		Map<String, Integer> wordRankings = new HashMap<String, Integer>();
-		//bad
-		wordRankings.put("live", -100);
-		wordRankings.put("cover", -100);
-		wordRankings.put("Instrumental", -30);
-		wordRankings.put("Remix", -10);
-		wordRankings.put("@", -30);
-		wordRankings.put("", 0);
+	private List<String> findBestResult(List<SearchResult> results, String artistName, String trackName, String forTrackId) {
 		
-		for (String part : replaceSpecialWithSpace(artistName).split(" ")) {
+		//load ratings for this track
+		YoutubeIdRatings youtubeIdRatings = youtubeIdRatingDao.getYoutubeIdRatings(forTrackId);
+		
+		//build map for good words
+		Map<String, Integer> wordRankings = new HashMap<String, Integer>(badWordRankings);
+		
+		String[] parts = StringUtils.stripSpecialCharacters(artistName).split(" ");
+		for (String part : parts) {
 			part = part.toLowerCase();
 			wordRankings.put(part, 10);
 		}
-		for (String part : replaceSpecialWithSpace(trackName).split(" ")) {
+		parts = StringUtils.stripSpecialCharacters(trackName).split(" ");
+		for (String part : parts) {
 			part = part.toLowerCase();
 			wordRankings.put(part, 10);
 		}
 		Map<SearchResult, Integer> scoredResults = new HashMap<SearchResult, Integer>();
 		for (SearchResult result : results) {
-			String title = replaceSpecialWithSpace(result.getTitle());
+			String title = StringUtils.stripSpecialCharacters(result.getTitle());
 			int score = 0;
 			for (String part : title.split(" ")) {
 				part = part.toLowerCase();
@@ -99,7 +110,8 @@ public class Search {
 					score -= 10;
 				}
 			}
-			for (String part : replaceSpecialWithSpace(result.getDescription()).split(" ")) {
+			parts = StringUtils.stripSpecialCharacters(result.getDescription()).split(" ");
+			for (String part : parts) {
 				if (part == null || part.equals("")) {
 					continue;
 				}
@@ -108,9 +120,8 @@ public class Search {
 					score += descriptionWordRankings.get(part);
 				}
 			}
-			YoutubeIdRatings youtubeIdRatings = youtubeIdRatingDao.getYoutubeIdRatings(result.getVideoId());
-			if(youtubeIdRatings != null) {
-				score += youtubeIdRatings.getRating();
+			if(youtubeIdRatings != null && youtubeIdRatings.getRatings().containsKey(result.getVideoId())) {
+				score += youtubeIdRatings.getRatings().get(result.getVideoId());
 			}
 			scoredResults.put(result, score);
 		}
@@ -130,10 +141,6 @@ public class Search {
 			videoIds.add(bestResult.getVideoId());
 		}
 		return videoIds;
-	}
-
-	public static String replaceSpecialWithSpace(String string) {
-		return string.replaceAll("[\\[\\]\\(\\)/\\.-]", " ");
 	}
 
 	public List<SearchResult> getYoutubeResults(String artistName, String trackName) {
@@ -178,7 +185,7 @@ public class Search {
 
 	public static void main(String[] argv) throws ParserConfigurationException, SAXException, IOException {
 		Search search = new Search();
-		List<String> ss = search.findYoutubeId("ratatat", "wildcat");
+		List<String> ss = search.findYoutubeId("ratatat", "wildcat", "");
 		for (String s : ss) {
 			System.out.println(s);
 		}

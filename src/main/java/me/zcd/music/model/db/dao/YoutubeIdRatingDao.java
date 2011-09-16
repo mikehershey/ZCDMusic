@@ -8,7 +8,7 @@ import me.zcd.music.model.db.YoutubeIdRatings;
  */
 public interface YoutubeIdRatingDao {
 	
-	public YoutubeIdRatings getYoutubeIdRatings(String youtubeId);
-	public YoutubeIdRatings addRating(String youtubeId, long toAdd);
+	public YoutubeIdRatings getYoutubeIdRatings(String trackKey);
+	public YoutubeIdRatings addRating(String youtubeId,String trackKey, long toAdd);
 	
 }

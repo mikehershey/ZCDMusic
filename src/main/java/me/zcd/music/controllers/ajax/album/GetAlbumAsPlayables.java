@@ -56,6 +56,7 @@ public class GetAlbumAsPlayables extends HttpServlet implements Bean {
 			p.artistName = StringUtils.formatName(track.getArtistName());
 			p.albumName = StringUtils.formatName(track.getAlbumName());
 			p.youtubeId = track.getYoutubeLocation();
+			p.trackNumber = Integer.toString(track.getTrackNumber());
 			ret.add(p);
 		}
 		Gson gson = new Gson();
@@ -72,6 +73,7 @@ public class GetAlbumAsPlayables extends HttpServlet implements Bean {
 		public String artistName;
 		public String albumName;
 		public String youtubeId;
+		public String trackNumber;
 	}
 
 	@Override

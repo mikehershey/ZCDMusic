@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import me.zcd.music.model.db.gae.GAEModel;
+import me.zcd.leetml.gae.GAEModel;
 import me.zcd.music.model.db.gae.jdo.GaeAlbumImpl;
 import me.zcd.music.model.db.gae.jdo.GaeArtistImpl;
 import me.zcd.music.model.db.gae.jdo.GaeTrackImpl;

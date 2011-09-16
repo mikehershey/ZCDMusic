@@ -11,13 +11,11 @@ package me.zcd.music.model.db.dao.provider;
 
 import me.zcd.music.model.db.dao.AlbumDao;
 import me.zcd.music.model.db.dao.ArtistDao;
-import me.zcd.music.model.db.dao.ImageDao;
 import me.zcd.music.model.db.dao.TrackDao;
 import me.zcd.music.model.db.dao.UserLibraryDao;
 import me.zcd.music.model.db.dao.YoutubeIdRatingDao;
 import me.zcd.music.model.db.gae.dao.AlbumDaoGaeImpl;
 import me.zcd.music.model.db.gae.dao.ArtistDaoGaeImpl;
-import me.zcd.music.model.db.gae.dao.ImageDaoGaeImpl;
 import me.zcd.music.model.db.gae.dao.TrackDaoGaeImpl;
 import me.zcd.music.model.db.gae.dao.UserLibraryDaoGaeImpl;
 import me.zcd.music.model.db.gae.dao.YoutubeIdRatingDaoGaeImpl;
@@ -41,11 +39,6 @@ public class GaeDaoProviderImpl implements DaoProvider {
 	@Override
 	public TrackDao getTrackDao() {
 		return new TrackDaoGaeImpl();
-	}
-	
-	@Override
-	public ImageDao getImageDao() {
-		return new ImageDaoGaeImpl();
 	}
 
 	@Override

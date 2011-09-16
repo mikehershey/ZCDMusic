@@ -6,11 +6,15 @@
     background-color:Transparent;
     color:#000;
 }
-#ytplayer {
-	width: 160px;
-	height: 160px;
+#ytPlayer {
+	width: 200px;
+	height: 200px;
 	padding:0;
 	margin:0;	
+	z-index: 50;
+}
+body {
+	overflow: hidden;
 }
 h1 {
 	font-family:Verdana, Geneva, sans-serif;
@@ -31,6 +35,10 @@ p {
 	font-family:Verdana, Geneva, sans-serif;
 	font-size: 12px;
 }
+label {
+	font-family:Verdana, Geneva, sans-serif;
+	font-size: 14px;
+}
 span {
 	font-family:Verdana, Geneva, sans-serif;
 }
@@ -45,19 +53,9 @@ body {
 	background-image:url('/images/header/header_bg.png');
 	float: left;
 }
-.appheader .title {
-	padding: 0;
-	margin: 0;
-	padding-left: 10px;
-	padding-top: 5px;
-	text-align: center;
-	width: 100px;
-	font-size: 14px;
-	color: #555;
-}
-.appheader .title_bottom {
-	padding-top: 0px;
-	font-size: 18px;
+#app_logo {
+	padding: 5px;
+	cursor:pointer;
 }
 .play_pause_button_position {
 	height: 40px;
@@ -107,7 +105,7 @@ body {
 	background-image: -webkit-radial-gradient(center center, circle farthest-corner, #fafafb 0%,#dddde2 200%);
 	background-image: -o-radial-gradient(center center, circle farthest-corner, #fafafb 0%,#dddde2 200%);
 	background-image: -ms-radial-gradient(center center, circle farthest-corner, #fafafb 0%,#dddde2 200%);
-	background-image: radial-gradient(center center, circle farthest-corner, #fafafb 0%,#dddde2 200%)
+	background-image: radial-gradient(center center, circle farthest-corner, #fafafb 0%,#dddde2 200%);
 	z-index: 2;
 }
 .now_playing .now_playing_artist {
@@ -191,7 +189,7 @@ body {
 	height: 100%;
 	background-color: white;
 	padding-left:202px;
-	padding-right: 162px;
+/*	padding-right: 162px;*/
 	padding-top: 60px;
 }
 .ad_block {
@@ -215,9 +213,14 @@ body {
 	font-size: 14px;
 	height: 30px;
 }
-#submit_search {
-	width: 20%;
-	height: 25px;
+.small_search_box {
+	width: 100%;
+	font-family:Verdana, Geneva, sans-serif;
+	font-size: 10px;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-khtml-border-radius: 10px;
+	border-radius: 10px;
 }
 .submit_search {
 	width: 15%;
@@ -276,13 +279,40 @@ body {
 }
 .album_block h1 {
 	font-size: 12px;
-	color: #4B9B9B;
+	color: #555;
 }
 .album_block h2 {
 	font-size: 10px;
-	color: #4B9B9B;
+	color: #777;
 }
-#other_pages {
+.splash_item {
+	width: 380px;
+	height: 100px;
+	display: inline-block;
+	border: 1px solid #EEE;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-khtml-border-radius: 10px;
+	border-radius: 5px;
+	padding: 5px;
+	margin: 3px;
+}
+.splash_info_holder {
+	width: 270px;
+	float: right;
+}
+.splash_item img {
+	width: 100px;
+}
+.splash_item h1 {
+	font-size: 24px;
+	color: #555;
+}
+.splash_item h2 {
+	font-size: 10px;
+	color: #777;
+}
+#other_pages, #log_page_holder {
 	max-height: 100%;
 	overflow-y: auto;
 	overflow-x: hidden;
@@ -400,6 +430,16 @@ body {
 	overflow-x: hidden;
 	overflow-y: scroll;
 }
+#my_music_library_playlist_holder {
+	overflow: scroll;
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+#recently_viewed_playlist_holder {
+	overflow: scroll;
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
 #tab_slider {
 	padding-top: 5px;
 	width: 50px;
@@ -409,4 +449,37 @@ body {
 }
 .tab_slider_image {
 	position: absolute;
+}
+#left_side_bottom_buttons {
+	position: absolute;
+	z-index: 100;
+	width: 200px;
+	height: 20px;
+}
+.pointer {
+	cursor:pointer;
+}
+#show_youtube_button {
+	left: 170px;
+	position: absolute;
+}
+.expand_up {
+	background-image: url('/images/expand_icons/expand_up.png');
+	width: 20px;
+	height: 20px;
+}
+.expand_down {
+	background-image: url('/images/expand_icons/expand_down.png');
+	width: 20px;
+	height: 20px;
+}
+.center {
+	margin-left: auto;
+	margin-right: auto;
+}
+#vote_bad_youtube_quality {
+	cursor: pointer;
+}
+#vote_good_youtube_quality {
+	cursor: pointer;
 }

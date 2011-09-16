@@ -16,8 +16,13 @@ import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import java.util.ArrayList;
+import java.util.List;
+import javax.jdo.annotations.NotPersistent;
 import me.zcd.music.Settings;
 import me.zcd.music.model.db.Track;
+import me.zcd.music.model.db.dao.TrackDao;
+import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 import me.zcd.music.utils.StringUtils;
 
 /**
@@ -27,6 +32,9 @@ import me.zcd.music.utils.StringUtils;
 @PersistenceCapable(detachable="true")
 public class GaeTrackImpl implements Track {
 
+	@NotPersistent
+	TrackDao trackDao = DaoProviderFactory.getProvider().getTrackDao();
+	
 	@PrimaryKey
 	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
 	private Key key;
@@ -48,13 +56,6 @@ public class GaeTrackImpl implements Track {
 	
 	@Persistent
 	private int trackNumber;
-	
-	@Persistent
-	private Boolean youtubeIdBad;
-	
-	//public void GaeTrackImpl() {
-	//	this.youtubeIdBad = false;
-	//}
 
 	@Override
 	public void setKey(String key) {
@@ -85,7 +86,7 @@ public class GaeTrackImpl implements Track {
 
 	@Override
 	public String getTitle() {
-		if(this.title != null) {
+		if(this.title != null) {			
 			return StringUtils.formatName(this.title);
 		}
 		return null;
@@ -154,19 +155,6 @@ public class GaeTrackImpl implements Track {
 	@Override
 	public void setTrackNumber(int i) {
 		this.trackNumber = i;
-	}
-
-	@Override
-	public boolean isYoutubeIdBad() {
-		if(this.youtubeIdBad == null) {
-			this.youtubeIdBad = false;
-		}
-		return this.youtubeIdBad;
-	}
-
-	@Override
-	public void setYoutubeIdBad(boolean isBad) {
-		this.youtubeIdBad = isBad;
 	}
 	
 }

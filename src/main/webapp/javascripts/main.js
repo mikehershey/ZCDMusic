@@ -12,9 +12,11 @@ var initChain = new function InitChain() {
 	}
 
 	this.initAll = function() {
-		needsInit.forEach(function(item) {
-			item.init();
-		});
+		for (i=0; i <= needsInit.length; i++) {
+			try {
+				needsInit[i].init();
+			} catch(e) {}
+		}
 	}
 
 }();
@@ -29,8 +31,9 @@ var resizer = new function Resizer() {
 		$('#right_dock').height(h);
 		$('#main_content').height(h);
 		$('#my_music_library_playlist_holder').height(h);
-
-		$('#ytPlayer').css('left',$(document).width() / 2 + 210)
+		$('#recently_viewed_playlist_holder').height(h);
+		
+		$('#left_side_bottom_buttons').css("top", h + 38);
 
 		$("#slider-range-min").slider({
 			range : "min",
@@ -38,6 +41,9 @@ var resizer = new function Resizer() {
 			min : 0,
 			max : 100
 		});
+		
+		youtubeSlideoutManager.resize();
+		
 	}
 
 	this.init = function() {
@@ -51,163 +57,140 @@ var resizer = new function Resizer() {
 
 }();
 
-/**
- * The slideout tab that handles the youtube controls (downvote see title etc)
- */
-var youtubeTab = new function YoutubeTab() {
 
-	var youtube_white = $('<img/>').attr('src', '/images/sideways_tab/youtube_white.png').addClass('tab_slider_image').addClass('youtube_white');
-
-	this.getTabImage = function() {
-		return youtube_white;
+var youtubeSlideoutManager = new function YoutubeSlideoutManager() {
+	
+	var collapsed = false;
+	
+	var inited = false;
+	
+	var addition = -29;
+	
+	var slideEffect = function() {
+		var h = $(window).height();
+		var gotoTop = 0;
+		if(collapsed) {
+			gotoTop = h;
+		} else {
+			gotoTop = h - 225 + addition;
+		}
+		$('#youtube_object_wrapper').animate({
+			'top': gotoTop
+		} , "fast");
 	}
-
-	this.getTabJquery = function() {
-		return $('.youtube_white');
+	
+	this.resize = function() {
+		var h = $(window).height();
+		if(collapsed) {
+			$('#youtube_object_wrapper').css('top', h);
+		} else {
+			$('#youtube_object_wrapper').css('top', h - 225 + addition);
+		}
 	}
-
-	this.onRender = function() {
+	
+	this.resetVoteRecord = function() {
+		$('#vote_good_youtube_quality').attr('src', '/images/voting/thumbs-up.png');
 	}
-
-	this.clickBottomRight = function() {
-		var trackKey = playlistManager.getCurrentlyPlaying().trackKey;
-		$('#playing_track_id_when_this_opened').val(trackKey);
-		$('#downvote_dialog').dialog({
-			width: 500,
-			modal : true,
-			buttons : {
-			"Submit" : function() {
-				var downVoteReason = $(this).find("input[type='radio']:checked").val();
-				var trackKey = $('#playing_track_id_when_this_opened').val();
-				var ajaxData = {'trackKey' : trackKey, 'downVoteReason' : downVoteReason};
+	
+	//note not init'ed by init manager, its done after youtube is ready
+	this.init = function() {
+		if(inited) {
+			return;
+		}
+		inited = true;
+		var div = $("<div/>").attr("id", "youtube_object_wrapper").css("position", "absolute");
+		$('#ytPlayer').wrap(div);
+		
+		var titleDive = $("<div/>").addClass('tab_header').css("padding", "0px").width('200px').height('30px');
+		var nowPlaying = '<p id="youtube_now_playing_text" style="padding: 0px; margin: 0px; font-size: 16px;font-weight: normal; overflow: hidden;float: left;padding-top: 5px;">How\'s the quality?</p>';
+		titleDive.append(nowPlaying);
+		titleDive.append('<div id="voting_holder" style="float: right; padding-top: 3px;"><img src="/images/voting/thumbs-down.png" id="vote_bad_youtube_quality"/><img src="/images/voting/thumbs-up.png" id="vote_good_youtube_quality"/></div>');
+		
+		$('#youtube_object_wrapper').prepend(titleDive);
+		
+		//setup those buttons
+		$('#vote_good_youtube_quality').click(function() {
+			if($(this).attr('src') == '/images/voting/thumbs-up.png') {
+				if(playlistManager.getCurrentlyPlaying() == undefined) {
+					alert("Could not rate this song because you're not listening to a song! (or a bug)");
+					return;
+				}
+				$('#vote_good_youtube_quality').attr('src', '/images/voting/thumbs-up-green.png');
+				//inform the server
+				var trackKey = playlistManager.getCurrentlyPlaying().trackKey;
+				var ajaxData = {
+					'trackKey' : trackKey, 
+					'downVoteReason' : 'GOOD'
+				};
 				$.ajax({
 					url : "/ajax/track/rateYoutubeQuality.h7m1",
 					data : ajaxData,
+					dataType: 'json',
 					success : function(data) {
-						isVoted = true;
-
-						$('.playing .youtube_id').text('');
-						playlistManager.restartCurrent();
 					}
 				});
-				$(this).dialog("close");
 			}
-		}
 		});
-	}
-
-	this.clickTopRight = function() {
-		alert('clicked top left');
-	}
-
-}
-
-/**
- * The slideout tab that handles the mail (for system messages)
- */
-var mailTab = new function YoutubeTab() {
-
-	var mail_white = $('<img/>').attr('src', '/images/sideways_tab/mail_white.png').addClass('tab_slider_image').addClass('mail_white');
-
-	var isVoted = false;
-
-	this.getTabImage = function() {
-		return mail_white;
-	}
-
-	this.getTabJquery = function() {
-		return $('.mail_white');
-	}
-
-	this.onRender = function() {
-	}
-
-	this.clickBottomRight = function() {
-		alert('clicked bottom right');
-	}
-
-	this.clickTopRight = function() {
-		alert('clicked top right');
-	}
-
-}
-
-var tabSlider = new function TabSlider() {
-	var self = this;
-	
-	var slider = $('<div/>').attr('id', "tab_slider");
-	var higherTab = mailTab;
-	var lowerTab = youtubeTab;
-	var activeTab = youtubeTab;
-	
-	self.renderSlider = function() {
-		$('#tab_slider').remove();
+		$('#vote_bad_youtube_quality').click(function() {
+			if(playlistManager.getCurrentlyPlaying() == undefined) {
+				alert("Could not rate this song because you're not listening to a song! (or a bug)");
+				return;
+			}
+			var trackKey = playlistManager.getCurrentlyPlaying().trackKey;
+			$('#playing_track_id_when_this_opened').val(trackKey);
+			$('#downvote_dialog').dialog({
+				width: 500,
+				modal : true,
+				buttons : {
+					"Submit" : function() {
+						var downVoteReason = $(this).find("input[type='radio']:checked").val();
+						var trackKey = $('#playing_track_id_when_this_opened').val();
+						var ajaxData = {
+							'trackKey' : trackKey, 
+							'downVoteReason' : downVoteReason
+						};
+						$.ajax({
+							url : "/ajax/track/rateYoutubeQuality.h7m1",
+							data : ajaxData,
+							dataType: 'json',
+							success : function(data) {
+								isVoted = true;
+								youtubePlayer.playPlayable(new Playable(data.trackKey, data.trackName, data.artistName, data.albumName, data.trackNumber));
+							}
+						});
+						$(this).dialog("close");
+					}
+				}
+			});
+		});
 		
-		var position = $(document).width() - 50;
-		slider.css('left', position);
-		
-		slider.empty();
-		
-		var higherTabImage = higherTab.getTabImage();
-		var lowerTabImage = lowerTab.getTabImage();
-		
-		slider.append(higherTabImage);
-		higherTab.onRender();
-		slider.append(lowerTabImage);
-		lowerTab.onRender();
-		
-		if(higherTab == activeTab) {
-			higherTabImage.css('z-index', '5');
-			lowerTabImage.css('z-index', '2');
+		$('#youtube_object_wrapper').css("left", "0")
+		var h = $(window).height();
+		if(collapsed) {
+			$('#youtube_object_wrapper').css('top', h);
+		} else {
+			$('#youtube_object_wrapper').css('top', h - 225 + addition);
 		}
-		if(lowerTab == activeTab) {
-			higherTabImage.css('z-index', '2');
-			lowerTabImage.css('z-index', '5');
-		}
-		
-		slider.click(function(event) {
-			var offset = $('#tab_slider').offset();
-			var x = event.pageX - offset.left;
-			var y = event.pageY - offset.top;
-			handleClick(x, y);
-		})
-		
-		$('body').prepend(slider);
-	}
-	
-	var handleClick = function(x, y) {
-		if(x < 25 && y < 25) {
-			//top left
-			activeTab = higherTab;
-		}
-		if(x < 25 && y >= 25) {
-			//bottom left
-			activeTab = lowerTab;
-		}
-		if(x >= 25 && y >= 25) {
-			//bottom right
-			activeTab.clickBottomRight();
-		}
-		if(x >= 25 && y < 25) {
-			//bottom right
-			activeTab.clickTopRight();
-		}
-		self.renderSlider();
-	}
-	
-	this.init = function() {
-		self.renderSlider();
-		$(window).resize(function() {
-			self.renderSlider();
+		$('#show_youtube_button').click(function() {
+			if($(this).hasClass('expand_down')) {
+				$(this).removeClass('expand_down');
+				$(this).addClass('expand_up');
+				collapsed = true;
+			} else {
+				$(this).removeClass('expand_up');
+				$(this).addClass('expand_down');
+				collapsed = false;
+			}
+			slideEffect();
+			return false;
 		});
 	}
 	
-	initChain.addToChain(self);
-
 }
 
+
 /**
- * Tabs can register themselves with the tab manager if they register before init
+ * Tabs can register themselves with the tab manager. If they register before init
  * is called they will be automatically bound to left side navigation #whatever
  */
 var tabManager = new function TabManager() {
@@ -217,6 +200,13 @@ var tabManager = new function TabManager() {
 	var tabNameToButtonIdMap = new Object();
 	var urlToTabMap = new Object();
 	var currentTab = null;
+
+	this.clearAllTabs = function() {
+		$('#other_pages').empty();
+		$('#my_music_library_holder').hide();
+		$('#recently_viewed_playlist_holder').hide();
+		$('#log_page_holder').hide();
+	}
 
 	/**
 	 * Tabs added must have a showTab() function which takes an option param
@@ -268,12 +258,58 @@ var tabManager = new function TabManager() {
 
 }();
 
+var legalTab = new function LegalTab() {
+	
+	var showCatDialog = function() {
+		$('#areYouSureYouHateKittens').dialog({
+			modal: true,
+			width: 800,
+			buttons: {
+				"Yes, I want your pet to die.": function() {
+					$( this ).dialog( "close" );
+					$('#thankYouForBeingALawyer').dialog({
+						modal: true,
+						width: 800,
+						buttons: {
+							"Continue to Legal Contact info": function() {
+								tabManager.clearAllTabs();
+								$.ajax({
+									url : '/tabs/legal.h7m1',
+									success : function(data) {
+										$('#other_pages').css("display", "none");
+										$('#other_pages').append(data);
+										$('#other_pages').fadeIn();
+									}
+								});
+								$( this ).dialog( "close" );
+							}
+						}
+					});
+				},
+				"No! I just misclicked!!": function() {
+					$( this ).dialog( "close" );
+					document.location.href='#';
+				}
+			}
+		});
+	}
+	
+	this.showTab = function() {
+		showCatDialog();
+	};
+
+	this.gotoTab = function() {
+		document.location.href='#legal';
+	}
+
+	tabManager.registerTab("legal", this, "legal", '#legal_button');
+	
+}
+
 var browseTab = new function BrowseTab() {
 
 	this.showTab = function() {
-		$('#other_pages').empty();
-		$('#my_music_library_holder').hide();
-		$('#recently_viewed_playlist_holder').hide();
+		tabManager.clearAllTabs();
 		$.ajax({
 			url : "/tabs/browsewarehouse.h7m1",
 			success : function(data) {
@@ -321,48 +357,66 @@ var searchTab = new function SearchTab() {
 			minLength : 1,
 			select : function(event, ui) {
 			if (ui.item.type == 'TRACK') {
-				var playable = new Playable(ui.item.key, ui.item.track, ui.item.artist, ui.item.youtubeId, ui.item.album);
-				var playables = [];
-				playables[0] = playable;
-				playQueuePlaylist.addToPlaylist(playables);
-				//play it
-				playlistManager.changePlaylist(playQueuePlaylist);
-				playlistManager.playFirst();
+			var playable = new Playable(ui.item.key, ui.item.track, ui.item.artist, ui.item.album, ui.item.trackNumber);
+			var playables = [];
+			playables[0] = playable;
+			playQueuePlaylist.addToPlaylist(playables);
+			//play it
+			playlistManager.changePlaylist(playQueuePlaylist);
+			playlistManager.playFirst();
 			} else if(ui.item.type == 'ARTIST') {
-				showArtistTab.gotoTab(ui.item.queryString);
+			showArtistTab.gotoTab(ui.item.queryString);
 			} else if(ui.item.type == 'ALBUM') {
-				showAlbumTab.gotoTab(ui.item.queryString);
+			showAlbumTab.gotoTab(ui.item.queryString);
 			}
 			return false;
 			}
 			}).data("catcomplete")._renderItem = function(ul, item) {
 			if (item.type == 'ARTIST') {
-				item.queryString = "id=" + item.key.replace(/&/g, '%26');
-				return $("<li></li>")
-				.data("item.autocomplete", item)
-				.append(
-					"<a href='#'>"
-					+ "<img src='/utils/showImage.h7m1?id="
-					+ item.imageUrl
-					+ "' style='float: left; margin-right: 5px;' /><h1>"
-					+ item.artist + "</h1></a>").appendTo(
-					ul);
+				item.queryString = "id=" + encodeURIComponent(item.key);
+				var ret = $("<li/>");
+				ret.data("item.autocomplete", item);
+				var image = $('<img/>');
+				if(item.imageUrl) {
+					image.attr('src', item.imageUrl);
+					image.attr('style', 'float: left; margin-right: 5px;');
+				}
+				else {
+					image.attr('src', '/images/Question-mark-face.png');
+					image.attr('style', 'float: left; margin-right: 5px;');
+				}
+				var link = $('<a href="#"/>')
+				link.append(image);
+				var h1 = $('<h1/>');
+				h1.text(item.artist);
+				link.append(h1)
+				ret.append(link);
+				return ret.appendTo(ul);
 			} else if (item.type == 'ALBUM') {
-				item.queryString = "albumKey=" + item.key.replace(/&/g, '%26');
-				return $("<li></li>")
-				.data("item.autocomplete", item)
-				.data("loadToUrl",
-					"/tabs/showAlbum.h7m1?id=" + item.key)
-				.append(
-					"<a href='#'>"
-					+ "<img src='/utils/showImage.h7m1?id="
-					+ item.imageUrl
-					+ "' style='float: left; margin-right: 5px;' /><h2>"
-					+ item.artist + "</h2><h2>"
-					+ item.album + "</h2></a>")
-				.appendTo(ul);
+				item.queryString = "albumKey=" + encodeURIComponent(item.key);
+				var ret = $("<li/>");
+				ret.data("item.autocomplete", item);
+				var image = $('<img/>');
+				if(item.imageUrl) {
+					image.attr('src', item.imageUrl);
+					image.attr('style', 'float: left; margin-right: 5px;');
+				}
+				else {
+					image.attr('src', '/images/default_album.jpg');
+					image.attr('style', 'float: left; margin-right: 5px;');
+				}
+				var link = $('<a href="#"/>');
+				link.append(image);
+				var h2 = $('<h2/>');
+				h2.text(item.artist);
+				link.append(h2);
+				var h22 = $('<h2/>')
+				h22.text(item.album);
+				link.append(h22);
+				ret.append(link);
+				return ret.appendTo(ul);
 			} else {
-				item.queryString = item.key.replace(/&/g, '%26');
+				item.queryString = encodeURIComponent(item.key);
 				return $("<li></li>").data("item.autocomplete", item).data(
 					"trackKey", item.key).append(
 					"<a href='#'><h2>" + item.track + "</h2><h3>"
@@ -372,9 +426,7 @@ var searchTab = new function SearchTab() {
 	}
 
 	this.showTab = function() {
-		$('#other_pages').empty();
-		$('#my_music_library_holder').hide();
-		$('#recently_viewed_playlist_holder').hide();
+		tabManager.clearAllTabs();
 		$.ajax({
 			url : "/tabs/showSearchWarehouse.h7m1",
 			success : function(data) {
@@ -391,71 +443,10 @@ var searchTab = new function SearchTab() {
 
 }();
 
-var requestTab = new function RequestTab() {
-
-	var submitForm = function() {
-		$.ajax({
-			url : "/tabs/showRequestArtist.h7m1",
-			type : "POST",
-			data : "artistName=" + $('#request_box').val(),
-			success : function(data) {
-			},
-			error : function(data) {
-				alert("Uh oh. As it turns out your request to add a new artist failed!")
-			}
-		})
-		$('#request_thanks').dialog({
-			resizable : false,
-			height : 200,
-			width : 600,
-			modal : true,
-			buttons : {
-				"Okay" : function() {
-					myMusicTab.gotoTab();
-					$(this).dialog("close");
-				}
-			}
-		});
-	}
-
-	var onAjaxTabLoad = function(data) {
-		$('#other_pages').css("display", "none");
-		$('#other_pages').append(data);
-		$('#other_pages').fadeIn();
-		$('#request_box').click(function() {
-			$(this).val('');
-		});
-		$('#request_form').submit(function(e) {
-			e.preventDefault();
-			submitForm();
-		});
-	}
-
-	this.showTab = function() {
-		$('#other_pages').empty();
-		$('#my_music_library_holder').hide();
-		$('#recently_viewed_playlist_holder').hide();
-		$.ajax({
-			url : "/tabs/showRequestArtist.h7m1",
-			success : function(data) {
-				onAjaxTabLoad(data);
-			}
-		});
-	}
-
-	this.gotoTab = function() {
-		document.location.href='#showRequest';
-	}
-
-	tabManager.registerTab("showRequest", this, "showRequest", '#request_artist_button');
-
-}
-
 var playQueueTab = new function PlayQueueTab() {
 
 	this.showTab = function() {
-		$('#other_pages').empty();
-		$('#my_music_library_holder').hide();
+		tabManager.clearAllTabs();
 		$('#recently_viewed_playlist_holder').fadeIn();
 		if ($('#recently_played_playlist').find('.playable_track').size() < 1) {
 			$('#recently_played_overlay').show();
@@ -469,6 +460,10 @@ var playQueueTab = new function PlayQueueTab() {
 	this.gotoTab = function() {
 		document.location.href='#playQueue';
 	}
+	
+	$(document).ready(function() {
+		$("#recently_played_playlist").trigger("update");
+	});
 
 	tabManager.registerTab("playQueue", this, "playQueue", '#recently_viewed_button');
 
@@ -477,9 +472,7 @@ var playQueueTab = new function PlayQueueTab() {
 var myMusicTab = new function MyMusicTab() {
 
 	this.showTab = function() {
-		$('#other_pages').empty();
-		$('#other_pages').hide();
-		$('#recently_viewed_playlist_holder').hide();
+		tabManager.clearAllTabs();
 		$('#my_music_library_holder').show();
 		if ($('#my_music_library').find('.playable_track').size() < 1) {
 			$('#splash_page_holder').show();
@@ -491,7 +484,9 @@ var myMusicTab = new function MyMusicTab() {
 	}
 
 	this.init = function() {
-		$('#my_music_library').tablesorter();
+		$('#my_music_library').tablesorter({
+			sortList: [[3,0],[4,0],[1,0]] 
+		});
 	}
 
 	initChain.addToChain(this);
@@ -524,13 +519,12 @@ var showArtistTab = new function ShowArtistTab() {
 					playlistManager.playFirst();
 				}
 			});
-			showAlbumTab.gotoTab('albumKey=' + albumId);
 			return false;
 		});
-        $('.add_album_to_library').click(function(event) {
-            event.preventDefault();
-            var albumId = $(this).attr('albumId');
-            $.ajax({
+		$('.add_album_to_library').click(function(event) {
+			event.preventDefault();
+			var albumId = $(this).attr('albumId');
+			$.ajax({
 				url : "/ajax/album/getAlbumAsPlayables.h7m1",
 				data: "id=" + albumId.replace(/&/g, '%26'),
 				dataType: 'json',
@@ -539,7 +533,7 @@ var showArtistTab = new function ShowArtistTab() {
 				}
 			});
 			return false;
-        });
+		});
 		$('.show_album_button').click(function(event) {
 			event.preventDefault();
 			var albumId = $(this).attr('key');
@@ -549,12 +543,10 @@ var showArtistTab = new function ShowArtistTab() {
 	}
 
 	this.showTab = function(queryString) {
-		$('#other_pages').empty();
-		$('#my_music_library_holder').hide();
-		$('#recently_viewed_playlist_holder').hide();
+		tabManager.clearAllTabs();
 		$.ajax({
 			url : '/tabs/showArtist.h7m1',
-			data: queryString.replace(/&/g, '%26'),
+			data: queryString,
 			success : function(data) {
 				$('#other_pages').css("display", "none");
 				$('#other_pages').append(data);
@@ -575,11 +567,13 @@ var showArtistTab = new function ShowArtistTab() {
 var showAlbumTab = new function ShowAlbumTab() {
 
 	var onAjaxTabLoad = function() {
-		$('#album_list').tablesorter();
+		$('#album_list').tablesorter({
+			sortList: [[0,0]] 
+		});
 		$('.play_album_now').click(function() {
 			var playables = [];
 			$('.addable_track').each(function() {
-				var playable = new Playable($(this).find('.track_id').text(), $(this).find('.library_track').text(), $(this).find('.library_artist').text(), $(this).find('.youtube_id').text(), $(this).find('.library_album').text());
+				var playable = new Playable($(this).find('.track_id').text(), $(this).find('.library_track').text(), $(this).find('.library_artist').text(), $(this).find('.library_album').text(), $(this).find('.track_number').text());
 				playables.push(playable);
 			});
 			playQueuePlaylist.addToPlaylist(playables);
@@ -587,21 +581,21 @@ var showAlbumTab = new function ShowAlbumTab() {
 			playlistManager.changePlaylist(playQueuePlaylist);
 			playlistManager.playFirst();
 		});
-        $('.add_album_to_library').click(function() {
+		$('.add_album_to_library').click(function() {
 			var playables = [];
 			$('.addable_track').each(function() {
-				var playable = new Playable($(this).find('.track_id').text(), $(this).find('.library_track').text(), $(this).find('.library_artist').text(), $(this).find('.youtube_id').text(), $(this).find('.library_album').text());
+				var playable = new Playable($(this).find('.track_id').text(), $(this).find('.library_track').text(), $(this).find('.library_artist').text(), $(this).find('.library_album').text(), $(this).find('.track_number').text());
 				playables.push(playable);
 			});
 			myMusicPlaylist.addToPlaylist(playables);
 		});
-        $('.add_track_from_album_page_to_library').click(function() {
-            var row = $(this).parent().parent();
-            var playable = new Playable(row.find('.track_id').text(), row.find('.library_track').text(), row.find('.library_artist').text(), row.find('.youtube_id').text(), row.find('.library_album').text());
-            var playables = [];
-            playables.push(playable);
-            myMusicPlaylist.addToPlaylist(playables);
-        });
+		$('.add_track_from_album_page_to_library').click(function() {
+			var row = $(this).parent().parent();
+			var playable = new Playable(row.find('.track_id').text(), row.find('.library_track').text(), row.find('.library_artist').text(), row.find('.library_album').text(), $(this).find('.track_number').text());
+			var playables = [];
+			playables.push(playable);
+			myMusicPlaylist.addToPlaylist(playables);
+		});
 		$('.addable_track').click(function(e) {
 			e.preventDefault();
 			$('#album_list').find('.selected').removeClass('selected');
@@ -609,7 +603,7 @@ var showAlbumTab = new function ShowAlbumTab() {
 		});
 		$('.addable_track').dblclick(function(e) {
 			//add this track to play_queue
-			var playable = new Playable($(this).find('.track_id').text(), $(this).find('.library_track').text(), $(this).find('.library_artist').text(), $(this).find('.youtube_id').text(), $(this).find('.library_album').text());
+			var playable = new Playable($(this).find('.track_id').text(), $(this).find('.library_track').text(), $(this).find('.library_artist').text(), $(this).find('.library_album').text() , $(this).find('.track_number').text());
 			var playables = [];
 			playables[0] = playable;
 			playQueuePlaylist.addToPlaylist(playables);
@@ -620,9 +614,7 @@ var showAlbumTab = new function ShowAlbumTab() {
 	}
 
 	this.showTab = function(queryString) {
-		$('#other_pages').empty();
-		$('#my_music_library_holder').hide();
-		$('#recently_viewed_playlist_holder').hide();
+		tabManager.clearAllTabs();
 		$.ajax({
 			url : '/tabs/showAlbum.h7m1',
 			data: queryString.replace(/&/g, '%26'),
@@ -646,9 +638,7 @@ var showAlbumTab = new function ShowAlbumTab() {
 var loginTab = new function LoginTab() {
 
 	this.showTab = function() {
-		$('#other_pages').empty();
-		$('#my_music_library_holder').hide();
-		$('#recently_viewed_playlist_holder').hide();
+		tabManager.clearAllTabs();
 		$.ajax({
 			url : "/tabs/login.h7m1",
 			success : function(data) {
@@ -675,28 +665,26 @@ var loginTab = new function LoginTab() {
  * @param youtubeId
  * @returns {Playable}
  */
-function Playable(trackKey, trackName, artistName, youtubeId, albumName) {
+function Playable(trackKey, trackName, artistName, albumName, trackNumber) {
 	var self = this;
+	this.trackNumber = trackNumber
 	this.trackKey = trackKey;
 	this.trackName = trackName;
 	this.artistName = artistName;
-	this.youtubeId = youtubeId;
 	this.albumName = albumName;
 
 	this.getYoutubeId = function() {
-		var ret = self.youtubeId;
-		if (!youtubeId || youtubeId == 'undefined') {
-			// make a server call to find the id based on song info
-			$.ajax({
-				type : "GET",
-				url : "/FindYoutubeIdForTrack.h7m1",
-				data : "trackKey=" + trackKey.replace(/&/g, '%26'),
-				async: false,
-				success : function(data) {
-					ret = data;
-				}
-			});
-		}
+		var ret = undefined;
+		// make a server call to find the id based on song info
+		$.ajax({
+			type : "GET",
+			url : "/FindYoutubeIdForTrack.h7m1",
+			data : "trackKey=" + self.trackKey.replace(/&/g, '%26'),
+			async: false,
+			success : function(data) {
+				ret = data;
+			}
+		});
 		return ret;
 	}
 
@@ -731,10 +719,11 @@ var myMusicPlaylist = new function MyMusicPlaylist() {
 	var getCuedPlayable = function() {
 		var cued = $('#my_music_library').find('.cued');
 		var trackId = cued.find('.track_id').text();
-		var youtubeId = cued.find('.youtube_id').text();
 		var artist = cued.find('.library_artist').text();
 		var track = cued.find('.library_track').text();
-		return new Playable(trackId, track, artist, youtubeId);
+		var album =  cued.find('.library_album').text();
+		var trackNumber = cued.find('.track_number').text();
+		return new Playable(trackId, track, artist, album, trackNumber);
 	}
 
 	this.next = function() {
@@ -769,7 +758,14 @@ var myMusicPlaylist = new function MyMusicPlaylist() {
 	}
 
 	var addPlayable = function(playable) {
-		$("#my_music_library").find('tbody').prepend($('<tr class="playable_track"><td class="icons"><div class="row_icons "></div></td><td class="library_track">' + playable.trackName + '</td><td class="library_artist">' + playable.artistName + '</td><td class="library_album">' + playable.albumName + '</td><td style="display: none;" class="youtube_id">' + playable.youtubeId + '</td><td style="display: none;" class="track_id">' + playable.trackKey +'</td></tr>'));
+		var row = $('<tr class="playable_track" />');
+		row.append('<td class="icons"><div class="row_icons "></div></td>');
+		row.append('<td class="track_number">' + playable.trackNumber + '</td>');
+		row.append('<td class="library_track">' + playable.trackName + '</td>');
+		row.append('<td class="library_artist">' + playable.artistName + '</td>');
+		row.append('<td class="library_album">' + playable.albumName + '</td>');
+		row.append('<td style="display: none;" class="track_id">' + playable.trackKey +'</td>');
+		$("#my_music_library").find('tbody').prepend(row);
 	}
 
 	this.addToPlaylist = function(playables) {
@@ -778,18 +774,20 @@ var myMusicPlaylist = new function MyMusicPlaylist() {
 		for(i = 0; i < playables.length; i++) {
 			trackKeys.push(playables[i].trackKey);
 		}
-        var ajaxData = {'trackKeys' : trackKeys};
-        $.ajax({
+		var ajaxData = {
+			'trackKeys' : trackKeys
+		};
+		$.ajax({
 			url : "/addTracksToLibrary.h7m1",
-            data : ajaxData,
+			data : ajaxData,
 			success : function(data) {
-                for(i = playables.length - 1; i >= 0 ; i--) {
-			        addPlayable(playables[i]);
-		        }
+				for(i = playables.length - 1; i >= 0 ; i--) {
+					addPlayable(playables[i]);
+				}
 				//unbind all the old click things
-		        $('#my_music_library .playable_track').unbind('click');
-		        $('#my_music_library .playable_track').unbind('dblclick');
-		        self.init();
+				$('#my_music_library .playable_track').unbind('click');
+				$('#my_music_library .playable_track').unbind('dblclick');
+				self.init();
 				myMusicTab.gotoTab();
 			}
 		});
@@ -837,12 +835,13 @@ var playQueuePlaylist = new function PlayQueuePlaylist() {
 	var getCuedPlayable = function() {
 		var cued = $('#recently_played_playlist').find('.cued');
 		var trackId = cued.find('.track_id').text();
-		var youtubeId = cued.find('.youtube_id').text();
 		var artist = cued.find('.library_artist').text();
+		var album = cued.find('.library_album').text();
 		var track = cued.find('.library_track').text();
-		return new Playable(trackId, track, artist, youtubeId);
+		var trackNumber = cued.find('.track_number').text();
+		return new Playable(trackId, track, artist, album, trackNumber);
 	}
-
+	
 	this.first = function() {
 		var cued = $('#recently_played_playlist').find('.cued');
 		next = $('#recently_played_playlist').find('.playable_track').first();
@@ -883,7 +882,15 @@ var playQueuePlaylist = new function PlayQueuePlaylist() {
 	}
 
 	var addPlayable = function(playable) {
-		$("#recently_played_playlist").find('tbody').prepend($('<tr class="playable_track"><td class="icons"><div class="row_icons "></div></td><td class="library_track">' + playable.trackName + '</td><td class="library_artist">' + playable.artistName + '</td><td class="library_album">' + playable.albumName + '</td><td><a href="#" class="add_to_library">Add to library</a></td><td style="display: none;" class="youtube_id">' + playable.youtubeId + '</td><td style="display: none;" class="track_id">' + playable.trackKey +'</td></tr>'));
+		var row = $('<tr class="playable_track" />');
+		row.append('<td class="icons"><div class="row_icons "></div></td>');
+		row.append('<td class="track_number">' + playable.trackNumber + '</td>');
+		row.append('<td class="library_track">' + playable.trackName + '</td>');
+		row.append('<td class="library_artist">' + playable.artistName + '</td>');
+		row.append('<td class="library_album">' + playable.albumName + '</td>');
+		row.append('<td><a href="#" class="add_to_library">Add to library</a></td>');
+		row.append('<td style="display: none;" class="track_id">' + playable.trackKey +'</td>');
+		$("#recently_played_playlist").find('tbody').prepend(row);
 	}
 
 	this.addToPlaylist = function(playables) {
@@ -894,7 +901,11 @@ var playQueuePlaylist = new function PlayQueuePlaylist() {
 		//unbind all the old click things
 		$('#recently_played_playlist .playable_track').unbind('click');
 		$('#recently_played_playlist .playable_track').unbind('dblclick');
+		$("#recently_played_playlist").tablesorter({
+			sortList: [[3,0],[4,0],[1,0]] 
+		});
 		self.init();
+		playQueueTab.gotoTab();
 	}
 
 	this.init = function() {
@@ -1072,6 +1083,8 @@ function YoutubePlayer(playerId, playlistManager) {
 		$('#now_playing_track').text(track);
 		playerElement.cueVideoById(id);
 		playerElement.setPlaybackQuality('large');
+		//reset the thumbs up to be green
+		youtubeSlideoutManager.resetVoteRecord();
 	}
 
 	// Allow the user to set the volume from 0-100
@@ -1133,30 +1146,34 @@ function onYouTubePlayerReady() {
 	// make a new global youtube object
 	window.youtubePlayer = new YoutubePlayer("ytPlayer", playlistManager);
 	// set a default video
-	ytplayer.cueVideoById("GL1-33ZDgPY");
-	resizer.resize();
+	// TODO show an ad here.
+	//ytplayer.cueVideoById("GL1-33ZDgPY");
+	youtubeSlideoutManager.init();
 }
 
 $(document).ready(function() {
-	initChain.initAll();
 
 	// load the youtube player
 	// Lets Flash from another domain call JavaScript
 	var params = {
-		allowScriptAccess : "always"
+		allowScriptAccess : "always",
+		value: "transparent"
 	};
 	// The element id of the Flash embed
 	var atts = {
-		id : "ytPlayer"
+		id : "ytPlayer",
+		wmode : "transparent"
 	};
 	// All of the magic handled by SWFObject
 	// (http://code.google.com/p/swfobject/)
 	swfobject.embedSWF(
-		"http://www.youtube.com/e/GL1-33ZDgPY?enablejsapi=1&version=3",
+		"http://www.youtube.com/v/XZ5TajZYW6Y?enablejsapi=1&version=3",
 		"videoDiv", "480", "295", "8", null, null,
 		params, atts
 		);
-
+			
+	resizer.resize();
+	initChain.initAll();
 	tabManager.showPoundedPage();
 
 	var hash = location.hash;
@@ -1169,6 +1186,90 @@ $(document).ready(function() {
 			tabManager.showPoundedPage();
 		}
 	}, 200);
+	
+	$('#app_logo').click(function() {
+		myMusicTab.gotoTab();
+	});
+	
+	var anchor = window.location.hash.replace("#", "");
+	if(!anchor) {
+		myMusicTab.gotoTab();
+	}
 
+	$.loading({
+		onAjax:true,
+		mask:true, 
+		img:'/jquery.loading/loading.gif', 
+		align:'center'
+	});
+	
+	$('#header_search_box').click(function() {
+		$(this).val('');
+	})
+
+	$.widget("custom.catcomplete", $.ui.autocomplete, {
+		_renderMenu : function(ul, items) {
+			var self = this;
+			var currentCategory = "";
+			$.each(items, function(index, item) {
+				if (item.type != currentCategory) {
+					ul.append("<li class='ui-autocomplete-category' style='font-size: 16px;'>" + item.type + "</li>");
+					currentCategory = item.type;
+				}
+				self._renderItem(ul, item);
+			});
+		}
+	});
+
+	$("#header_search_box").catcomplete({
+		source : "/searchWarehouse.h7m1",
+		minLength : 1,
+		select : function(event, ui) {
+			if (ui.item.type == 'TRACK') {
+				var playable = new Playable(ui.item.key, ui.item.track, ui.item.artist, ui.item.youtubeId, ui.item.album, ui.item.trackNumber);
+				var playables = [];
+				playables[0] = playable;
+				playQueuePlaylist.addToPlaylist(playables);
+				//play it
+				playlistManager.changePlaylist(playQueuePlaylist);
+				playlistManager.playFirst();
+			} else if(ui.item.type == 'ARTIST') {
+				showArtistTab.gotoTab(ui.item.queryString);
+			} else if(ui.item.type == 'ALBUM') {
+				showAlbumTab.gotoTab(ui.item.queryString);
+			}
+			return false;
+		}
+	}).data("catcomplete")._renderItem = function(ul, item) {
+		if (item.type == 'ARTIST') {
+			item.queryString = "id=" + encodeURIComponent(item.key);
+			var ret = $("<li/>").height('30px').css('margin-top', '3px').css('margin-bottom', '3px');
+			ret.data("item.autocomplete", item);
+			var link = $('<a href="#"/>').height('30px');
+			var h1 = $('<h1/>').css("font-size", "12px").css('line-height','14px').height('14px').css('overflow','hidden').css('white-space', 'nowrap');
+			h1.text(item.artist);
+			link.append(h1)
+			ret.append(link);
+			return ret.appendTo(ul);
+		} else if (item.type == 'ALBUM') {
+			item.queryString = "albumKey=" + encodeURIComponent(item.key);
+			var ret = $("<li/>").height('30px').css('margin-top', '3px').css('margin-bottom', '3px');
+			ret.data("item.autocomplete", item);
+			var link = $('<a href="#"/>').height('30px');
+			var h22 = $('<h2/>').css("font-size", "12px").css('line-height','14px').height('14px').css('overflow','hidden').css('white-space', 'nowrap');
+			h22.text(item.album);
+			link.append(h22);
+			var h2 = $('<h2/>').css("font-size", "10px").css('line-height','11px').height('11px').css('overflow','hidden').css('white-space', 'nowrap');
+			h2.text(item.artist);
+			link.append(h2);
+			ret.append(link);
+			return ret.appendTo(ul);
+		} else {
+			item.queryString = encodeURIComponent(item.key);
+			var li = $("<li/>").data("item.autocomplete", item).data("trackKey", item.key).height('30px').css('margin-top', '3px').css('margin-bottom', '3px');
+			li.append("<a href='#' style='height: 30px;'><h2 style='font-size: 12px;overflow: hidden;white-space: nowrap;'>" + item.track + "</h2><h3 style='font-size: 10px;overflow: hidden;white-space: nowrap;'>" + item.artist + "</h3></a>")
+			return li.appendTo(ul);
+		}
+	};
 
 });

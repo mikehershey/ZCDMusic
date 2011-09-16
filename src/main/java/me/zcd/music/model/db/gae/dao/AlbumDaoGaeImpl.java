@@ -14,21 +14,21 @@ import java.util.List;
 
 import javax.jdo.PersistenceManager;
 
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
-import java.util.logging.Logger;
+import me.zcd.leetml.gae.GAEModel;
+import me.zcd.leetml.logging.Log;
+import me.zcd.leetml.logging.LogFactory;
 import me.zcd.music.model.db.Album;
 import me.zcd.music.model.db.Track;
 
 import me.zcd.music.model.db.dao.AlbumDao;
-import me.zcd.music.model.db.gae.GAEModel;
 import me.zcd.music.model.db.gae.jdo.GaeAlbumImpl;
 import me.zcd.music.model.db.gae.jdo.GaeTrackImpl;
 import me.zcd.music.model.db.utils.KeygenService;
 
 public class AlbumDaoGaeImpl implements AlbumDao {
 
-	private Logger log = Logger.getLogger(AlbumDaoGaeImpl.class.getName());
+	private Log log = LogFactory.getLogger(AlbumDaoGaeImpl.class);
+	private TrackDaoGaeImpl trackDao = new TrackDaoGaeImpl();
 	
 	@Override
 	public Album getAlbum(String key) {
@@ -44,17 +44,7 @@ public class AlbumDaoGaeImpl implements AlbumDao {
 
 	@Override
 	public List<Track> getAllTracks(Album album) {
-		List<Track> ret = new ArrayList<Track>();
-		PersistenceManager pm = GAEModel.get().getPersistenceManager();
-		try {
-			for(String key : album.getTrackKeys()) {
-				GaeTrackImpl t = pm.getObjectById(GaeTrackImpl.class, key);
-				ret.add(t);
-			}
-		} finally {
-			pm.close();
-		}
-		return ret;
+		return trackDao.getTracks(album.getTrackKeys());
 	}
 
 	@Override
@@ -73,6 +63,16 @@ public class AlbumDaoGaeImpl implements AlbumDao {
 		PersistenceManager pm = GAEModel.get().getPersistenceManager();
 		try {
 			pm.makePersistentAll(albums);
+		} finally {
+			pm.close();
+		}
+	}
+
+	@Override
+	public void persistAlbum(Album album) {
+		PersistenceManager pm = GAEModel.get().getPersistenceManager();
+		try {
+			pm.makePersistent(album);
 		} finally {
 			pm.close();
 		}

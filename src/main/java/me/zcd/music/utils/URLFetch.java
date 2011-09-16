@@ -12,21 +12,24 @@ package me.zcd.music.utils;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
+import me.zcd.leetml.logging.Log;
+import me.zcd.leetml.logging.LogFactory;
 
 public class URLFetch {
 	
-	private static final Logger log = Logger.getLogger(URLFetch.class.getName());
+	private static final Log log = LogFactory.getLogger(URLFetch.class);
 
 	public static String getUrl(String pageUrl) {
 		StringBuilder data = new StringBuilder();
 		log.info("Requesting: " + pageUrl);
 		try {
-	        URL url = new URL(pageUrl);
+	        URL url = new URL(pageUrl);      
 	        BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
 	        String line;
 	        while ((line = reader.readLine()) != null) {
@@ -35,7 +38,7 @@ public class URLFetch {
 	        reader.close();
 	
 	    } catch (Exception e) {
-	    	log.warning("Failed to load page: " + pageUrl);
+	    	log.warn("Failed to load page: " + pageUrl, e);
 	    	return null;
 	    }
 	    String resp = data.toString();
@@ -60,7 +63,7 @@ public class URLFetch {
 	        reader.close();
 	
 	    } catch (Exception e) {
-	    	log.warning("Failed to load page: " + pageUrl);
+	    	log.warn("Failed to load page: " + pageUrl, e);
 	    	return null;
 	    }
 	    String resp = data.toString();
@@ -84,7 +87,7 @@ public class URLFetch {
 	        is.read(bytes);
 	        is.close();
 	    } catch (Exception e) {
-	    	log.warning("Failed to load page: " + pageUrl);
+	    	log.warn("Failed to load page: " + pageUrl, e);
 	    	return null;
 	    }
 	    String resp = data.toString();

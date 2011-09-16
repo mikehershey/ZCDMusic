@@ -5,3 +5,14 @@
 .svn
 target
 Secrets.java
+src/main/webapp/wro/all.js
+
+src/main/webapp/wro/all.css
+
+datanucleus.log
+
+ZCDMusic.iws
+
+ZCDMusic.ipr
+
+ZCDMusic.iml

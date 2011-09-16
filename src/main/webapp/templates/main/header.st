@@ -10,10 +10,15 @@
 	is very little we can do without user feedback. By providing feedback to us 
 	we can adjust our youtube video ranking algorithm to pick a better song in 
 	the future!</p>
+
+	<button type="button" style="font-size: 12px;">Still can't find a good video? Suggest your own YouTube link</button>
 </div>
 <div id="appheader" class="appheader">
-	<h3 class="title">ZCD</h3>
-	<h3 class="title title_bottom">Music</h3>
+	<div id="header_div_user_login" style="float: right; padding-right: 5px; width: 200px">
+		<p style="text-align:right; padding: 0; margin: 0; padding-top: 10px;">$userEmail$</p>
+		<input type="text" name="searchTerm" class="small_search_box" id="header_search_box" value="Search for artist/album/track..." style="margin-top: 5px;"/>
+	</div>
+	<img src="/images/header/music.png" id="app_logo" />
 	<div class="music_navigation">
 		<a href="#" id="back_button" class="backward_button_position backward_button"></a>
 		<a href="#" id="play_pause_button" class="play_pause_button_position play_button"></a>
@@ -24,5 +29,4 @@
 		<p id="now_playing_track" class="now_playing_track">Track</p>
 		<div id="slider-range-min"></div>
 	</div>
-	<!-- Tab slider is 100% javascript -->
 </div>

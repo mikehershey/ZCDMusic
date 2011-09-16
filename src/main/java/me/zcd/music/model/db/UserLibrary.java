@@ -9,7 +9,9 @@
  */
 package me.zcd.music.model.db;
 
+import java.util.Map;
 import java.util.Set;
+import me.zcd.music.model.UserLibraryTrack;
 
 /**
  *
@@ -20,8 +22,10 @@ public interface UserLibrary {
 	public void setEmailAddress(String emailAddress);
 	public String getEmailAddress();
 	
-	public Set<String> getTrackKeys();
-	public void addTrackKey(String trackKey);
-	public void setTrackKeys(Set<String> trackKeys);
+	public Set<UserLibraryTrack> getTracks();
+	public void addTrack(UserLibraryTrack trackKey);
+	public void setTracks(Set<UserLibraryTrack> trackKeys);
+	public Map<String, UserLibraryTrack> getIndexedTracks();
+	public void setIndexedTracks(Map<String, UserLibraryTrack> trackKeys);
 	
 }

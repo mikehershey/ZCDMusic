@@ -11,6 +11,7 @@ package me.zcd.music.model.db.gae.jdo;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import java.util.HashMap;
 import me.zcd.music.model.db.UserLibrary;
 
 import javax.jdo.annotations.IdGeneratorStrategy;
@@ -18,7 +19,10 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import me.zcd.music.model.UserLibraryTrack;
+import me.zcd.music.model.db.Track;
 
 /**
  *
@@ -34,13 +38,13 @@ public class UserLibraryGaeImpl implements UserLibrary {
 	@Persistent
 	private String emailAddress;
 	
-	@Persistent
-	private Set<String> trackKeys;
+	@Persistent(serialized = "true", defaultFetchGroup="true")
+	private Map<String, UserLibraryTrack> tracks;
 
 	public UserLibraryGaeImpl(String emailAddress) {
 		this.key = KeyFactory.createKey(UserLibraryGaeImpl.class.getSimpleName(), emailAddress);
 		this.emailAddress = emailAddress;
-		this.trackKeys = new HashSet<String>();
+		this.tracks = new HashMap<String, UserLibraryTrack>();
 	}
 
 	public Key getKey() {
@@ -49,16 +53,6 @@ public class UserLibraryGaeImpl implements UserLibrary {
 
 	public void setKey(Key key) {
 		this.key = key;
-	}
-
-	@Override
-	public Set<String> getTrackKeys() {
-		return trackKeys;
-	}
-
-	@Override
-	public void setTrackKeys(Set<String> trackKeys) {
-		this.trackKeys = trackKeys;
 	}
 
 	@Override
@@ -72,8 +66,31 @@ public class UserLibraryGaeImpl implements UserLibrary {
 	}
 
 	@Override
-	public void addTrackKey(String trackKey) {
-		this.trackKeys.add(trackKey);
+	public Map<String, UserLibraryTrack> getIndexedTracks() {
+		return this.tracks;
+	}
+
+	@Override
+	public void addTrack(UserLibraryTrack trackKey) {
+		this.tracks.put(trackKey.getTrackKey(), trackKey);
+	}
+
+	@Override
+	public void setIndexedTracks(Map<String, UserLibraryTrack> trackKeys) {
+		this.tracks = trackKeys;
+	}
+
+	@Override
+	public Set<UserLibraryTrack> getTracks() {
+		return new HashSet(this.tracks.values());
+	}
+
+	@Override
+	public void setTracks(Set<UserLibraryTrack> trackKeys) {
+		this.tracks = new HashMap<String, UserLibraryTrack>();
+		for(UserLibraryTrack t : trackKeys) {
+			this.tracks.put(t.getTrackKey(), t);
+		}
 	}
 	
 }

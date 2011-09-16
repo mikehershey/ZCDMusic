@@ -2,6 +2,8 @@ package me.zcd.music.model.db.gae.jdo;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import java.util.HashMap;
+import java.util.Map;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
@@ -18,28 +20,32 @@ public class YoutubeIdRatingGaeImpl implements YoutubeIdRatings {
 	@PrimaryKey
 	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
 	private Key key;
-	
+
 	@Persistent
-	private long rating;
+	private String trackKey;
 	
-	public YoutubeIdRatingGaeImpl(String youtubeId) {
-		this.key = KeyFactory.createKey(YoutubeIdRatingGaeImpl.class.getSimpleName(), youtubeId);
-		this.rating = 0l;
-	}
+	@Persistent(serialized = "true", defaultFetchGroup="true")
+	private Map<String,Long> ratings;
 	
-	@Override
-	public String getYoutubeId() {
-		return this.key.getName();
+	public YoutubeIdRatingGaeImpl(String trackKey) {
+		this.key = KeyFactory.createKey(YoutubeIdRatingGaeImpl.class.getSimpleName(), trackKey);
+		this.trackKey = trackKey;
+		ratings = new HashMap<String,Long>();
 	}
 
 	@Override
-	public long getRating() {
-		return this.rating;
+	public String getTrackKey() {
+		return this.trackKey;
 	}
 
 	@Override
-	public void addRating(long toAdd) {
-		this.rating += toAdd;
+	public Map<String, Long> getRatings() {
+		return ratings;
+	}
+
+	@Override
+	public void setRatings(Map<String, Long> ratings) {
+		this.ratings = ratings;
 	}
 	
 }

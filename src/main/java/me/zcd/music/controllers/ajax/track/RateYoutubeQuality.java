@@ -3,24 +3,26 @@ package me.zcd.music.controllers.ajax.track;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import me.zcd.leetml.LeetmlController;
+import me.zcd.leetml.LeetmlAjaxController;
 import me.zcd.leetml.bean.Bean;
 import me.zcd.leetml.bean.validation.ValidationRule;
 import me.zcd.leetml.bean.validation.rules.ManagedField;
 import me.zcd.leetml.bean.validation.rules.RequiredRule.Required;
-import me.zcd.music.model.DownVoteReason;
+import me.zcd.music.model.VoteReason;
 import me.zcd.music.model.db.Track;
 import me.zcd.music.model.db.dao.TrackDao;
 import me.zcd.music.model.db.dao.YoutubeIdRatingDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
+import me.zcd.music.model.js.Playable;
+import me.zcd.music.youtube.api.Search;
 
 /**
  *
  * @author mikehershey
  */
-public class RateYoutubeQuality extends LeetmlController implements Bean {
+public class RateYoutubeQuality extends LeetmlAjaxController implements Bean {
 	
-	private DownVoteReason downVoteReason;
+	private VoteReason downVoteReason;
 	private String trackKey;
 	
 	private TrackDao trackDao = DaoProviderFactory.getProvider().getTrackDao();
@@ -29,7 +31,7 @@ public class RateYoutubeQuality extends LeetmlController implements Bean {
 	@ManagedField
 	@Required
 	public void setDownVoteReason(String downVoteReason) {
-		this.downVoteReason = DownVoteReason.valueOf(downVoteReason);
+		this.downVoteReason = VoteReason.valueOf(downVoteReason);
 	}
 	
 	@ManagedField
@@ -39,11 +41,14 @@ public class RateYoutubeQuality extends LeetmlController implements Bean {
 	}
 	
 	@Override
-	public String service() {
-		Track t = trackDao.invalidateYoutubeId(trackKey);
+	public Object service() {
+		Track t = trackDao.getTrack(trackKey);
 		if(t != null && t.getYoutubeLocation() != null && !t.getYoutubeLocation().isEmpty()) {
 			long toAdd = 0l;
 			switch(downVoteReason) {
+				case GOOD:
+					toAdd = 100l;
+					break;
 				case BAD_QUALITY:
 					toAdd = -30l;
 					break;
@@ -54,9 +59,20 @@ public class RateYoutubeQuality extends LeetmlController implements Bean {
 					toAdd = -100l;
 					break;
 			}
-			youtubeIdRatingDao.addRating(t.getYoutubeLocation(), toAdd);
+			youtubeIdRatingDao.addRating(t.getYoutubeLocation(),t.getKey(), toAdd);
 		}
-		return "200";
+		String youtubeId = null;
+		if(!downVoteReason.equals(downVoteReason.GOOD)) {
+			//if we are downvoting find a new youtube video id and set it.
+			try {
+				youtubeId = new Search().findYoutubeId(t.getArtistName(), t.getTitle(), t.getKey()).get(0);
+			} catch(Exception e) {
+				log.error("Error finding new youtube ID", e);
+				this.resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			}
+			trackDao.setYoutubeId(this.trackKey, youtubeId);
+		}
+		return new Playable(t.getKey(), t.getTitle(), t.getArtistName(), t.getAlbumName(), youtubeId, Integer.toString(t.getTrackNumber()));
 	}
 
 	@Override

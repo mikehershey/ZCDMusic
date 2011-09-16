@@ -9,6 +9,10 @@
  */
 package me.zcd.music.model.db.gae.jdo;
 
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -21,14 +25,26 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import java.text.SimpleDateFormat;
 import java.util.logging.Logger;
+import javax.jdo.PersistenceManager;
+import javax.jdo.annotations.NotPersistent;
+import me.zcd.leetml.gae.GAEModel;
+import me.zcd.leetml.image.Image;
+import me.zcd.leetml.image.ImageServiceFactory;
+import me.zcd.leetml.image.gae.jdo.ImageGaeImpl;
 import me.zcd.music.Settings;
 import me.zcd.music.model.db.Album;
+import me.zcd.music.model.db.dao.AlbumDao;
+import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 import me.zcd.music.utils.StringUtils;
 
 @PersistenceCapable(detachable = "true")
 public class GaeAlbumImpl implements Album {
 	
+	@NotPersistent
 	private static Logger log = Logger.getLogger(GaeAlbumImpl.class.getName());
+	
+	@NotPersistent
+	private AlbumDao albumDao = DaoProviderFactory.getProvider().getAlbumDao();
 
 	@PrimaryKey
 	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
@@ -48,6 +64,23 @@ public class GaeAlbumImpl implements Album {
 	
 	@Persistent
 	private String albumArtKey;
+	
+	@Persistent
+	private String albumArtUrl;
+	
+	@Persistent
+	private String type;
+	
+	@Persistent
+	private List<String> searchTerms = new ArrayList<String>();
+
+	public String getAlbumArtUrl() {
+		return albumArtUrl;
+	}
+
+	public void setAlbumArtUrl(String albumArtUrl) {
+		this.albumArtUrl = albumArtUrl;
+	}
 
 	@Override
 	public String getKey() {
@@ -59,9 +92,28 @@ public class GaeAlbumImpl implements Album {
 		this.key = KeyFactory.createKey(GaeAlbumImpl.class.getSimpleName(), key.toLowerCase());
 	}
 
+	private void migrateToHavingSearchTerms() {
+		if(searchTerms.size() < 1) {
+			for(String titlePart : StringUtils.stripSpecialCharacters(name).split(" ")) {
+				this.searchTerms.add(titlePart);
+			}
+			albumDao.persistAlbum(this);
+		}
+	}
+	
+	private void migrateToHavingImages() {
+		
+	}
+
 	@Override
 	public String getName() {
+		
 		if(this.name != null) {
+			
+			//handles data migration to include searchTerms
+			//TODO remove this once data migration is complete
+			migrateToHavingSearchTerms();
+			
 			return StringUtils.formatName(this.name);
 		}
 		return null;
@@ -133,6 +185,44 @@ public class GaeAlbumImpl implements Album {
 	public String getFormattedReleaseDate() {
 		SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd, yyyy");
 		return sdf.format(releaseDate);
+	}
+
+	@Override
+	public Image getAlbumImage() {
+		if(StringUtils.containsOnlyNumbers(this.albumArtKey)) {
+			//new form of Image object
+			PersistenceManager pm = GAEModel.get().getPersistenceManager();
+			Image i = null;
+			log.info("Loading image (Image object): " + this.albumArtKey);
+			try {
+				i = pm.getObjectById(ImageGaeImpl.class, Long.parseLong(this.albumArtKey));
+			} finally {
+				pm.close();
+			}
+			return i;
+		} else {
+			log.info("Migrating old data");
+			//migrate old blobstore only keys
+			BlobstoreService blobStoreService = BlobstoreServiceFactory.getBlobstoreService();
+			byte[] data = blobStoreService.fetchData(new BlobKey(this.albumArtKey), 0, BlobstoreService.MAX_BLOB_FETCH_SIZE-1);
+			log.info("I have the data from blobstore!");
+			Image i = ImageServiceFactory.get().saveImage(data, "image/jpg");
+			if(i != null) {
+				this.albumArtKey = i.getKey();
+			}
+			this.albumDao.persistAlbum(this);
+			return i;
+		}
+	}
+
+	@Override
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	@Override
+	public String getType() {
+		return this.type;
 	}
 	
 }

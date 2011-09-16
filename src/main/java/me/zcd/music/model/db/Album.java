@@ -11,6 +11,7 @@ package me.zcd.music.model.db;
 
 import java.util.Date;
 import java.util.List;
+import me.zcd.leetml.image.Image;
 
 /**
  *
@@ -43,9 +44,15 @@ public interface Album {
 	public void setAlbumArtKey(String albumArtKey);
 
 	public String getAlbumArtKey();
+	
+	public Image getAlbumImage();
 
 	public void setName(String name);
 	
 	public void addTrackKey(String key);
+	
+	public void setType(String type);
+	
+	public String getType();
 	
 }

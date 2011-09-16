@@ -10,15 +10,15 @@
 package me.zcd.music.errors;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import me.zcd.leetml.dispatcher.error.Default500Page;
+import me.zcd.leetml.email.MailService;
+import me.zcd.leetml.email.MailServiceFactory;
+import me.zcd.leetml.email.Message;
+import me.zcd.leetml.logging.Log;
+import me.zcd.leetml.logging.LogFactory;
 import me.zcd.music.Settings;
-import me.zcd.music.mail.MailService;
-import me.zcd.music.mail.MailServiceFactory;
-import me.zcd.music.mail.Message;
 import me.zcd.music.utils.StringUtils;
 
 /**
@@ -28,6 +28,8 @@ import me.zcd.music.utils.StringUtils;
 public class Email500Error extends Default500Page {
 
 	private MailService mailService = MailServiceFactory.getMailService();
+	
+	private Log log = LogFactory.getLogger(Email500Error.class);
 	
 	@Override
 	public void onError(HttpServletRequest req, HttpServletResponse resp, Exception e) {
@@ -42,7 +44,7 @@ public class Email500Error extends Default500Page {
 			super.onError(req, resp, e);
 			resp.setStatus(200); //force 200 so error page is shown at all in ajax
 		} catch (IOException ex) {
-			Logger.getLogger(Email500Error.class.getName()).log(Level.SEVERE, null, ex);
+			log.error("", ex);
 		}
 	}
 }
