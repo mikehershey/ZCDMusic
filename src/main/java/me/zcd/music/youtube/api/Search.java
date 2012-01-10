@@ -32,6 +32,7 @@ import me.zcd.music.model.db.YoutubeIdRatings;
 import me.zcd.music.model.db.dao.YoutubeIdRatingDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 
+import me.zcd.music.utils.MapUtils;
 import me.zcd.music.utils.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -44,7 +45,7 @@ public class Search {
 
 	private YoutubeIdRatingDao youtubeIdRatingDao = DaoProviderFactory.getProvider().getYoutubeIdRatingDao();
 	
-	private static Map<String, Integer> badWordRankings = new HashMap<String, Integer>();
+	private static final Map<String, Integer> badWordRankings = new HashMap<String, Integer>();
 	static {
 		badWordRankings.put("live", -100);
 		badWordRankings.put("cover", -100);
@@ -141,6 +142,51 @@ public class Search {
 			videoIds.add(bestResult.getVideoId());
 		}
 		return videoIds;
+	}
+	
+	public List<SearchResult> getOrderedYoutubeResults(String artistName, String trackName) {
+		List<SearchResult> results = getYoutubeResults(artistName, trackName);
+		//build map for good words
+		Map<String, Integer> wordRankings = new HashMap<String, Integer>(badWordRankings);
+		
+		String[] parts = StringUtils.stripSpecialCharacters(artistName).split(" ");
+		for (String part : parts) {
+			part = part.toLowerCase();
+			wordRankings.put(part, 10);
+		}
+		parts = StringUtils.stripSpecialCharacters(trackName).split(" ");
+		for (String part : parts) {
+			part = part.toLowerCase();
+			wordRankings.put(part, 10);
+		}
+		Map<SearchResult, Integer> scoredResults = new HashMap<SearchResult, Integer>();
+		for (SearchResult result : results) {
+			String title = StringUtils.stripSpecialCharacters(result.getTitle());
+			int score = 0;
+			for (String part : title.split(" ")) {
+				part = part.toLowerCase();
+				if (wordRankings.containsKey(part)) {
+					score += wordRankings.get(part);
+				}
+			}
+			parts = StringUtils.stripSpecialCharacters(result.getDescription()).split(" ");
+			for (String part : parts) {
+				if (part == null || part.equals("")) {
+					continue;
+				}
+				part = part.toLowerCase();
+				if (descriptionWordRankings.containsKey(part)) {
+					score += descriptionWordRankings.get(part);
+				}
+			}
+			scoredResults.put(result, score);
+		}
+		scoredResults = MapUtils.sortByValue(scoredResults);
+		List<SearchResult> ret = new ArrayList<SearchResult>();
+		for(Entry<SearchResult, Integer> result : scoredResults.entrySet()) {
+			ret.add(result.getKey());
+		}
+		return ret;
 	}
 
 	public List<SearchResult> getYoutubeResults(String artistName, String trackName) {

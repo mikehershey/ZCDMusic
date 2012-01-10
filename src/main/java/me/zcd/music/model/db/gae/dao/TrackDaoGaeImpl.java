@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
 import me.zcd.leetml.gae.GAEModel;
 import me.zcd.leetml.logging.Log;
@@ -122,5 +123,23 @@ public class TrackDaoGaeImpl implements TrackDao {
 		} finally {
 			pm.close();
 		}
+	}
+
+	@Override
+	public void incrementGlobalPlayCount(String trackId) {
+		log.debug("incrementing global count for track: " + trackId);
+		PersistenceManager pm = GAEModel.get().getPersistenceManager();
+		Track t = null;
+		try {
+			t = pm.getObjectById(GaeTrackImpl.class, trackId);
+			log.debug("Count before increment: " + t.getTotalPlays());
+			t.incrementTotalPlays();
+			JDOHelper.makeDirty(t, "totalPlays");
+		} catch(Exception e) {
+			log.error("error incrementing global count", e);
+		}finally {
+			pm.close();
+		}
+		log.debug("Count after increment: " + t.getTotalPlays());
 	}
 }

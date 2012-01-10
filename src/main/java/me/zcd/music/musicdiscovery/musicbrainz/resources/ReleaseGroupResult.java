@@ -18,6 +18,15 @@ public class ReleaseGroupResult {
 	private String name;
 	private String type;
 	private Date releaseDate;
+	private int count;
+
+	public int getCount() {
+		return count;
+	}
+
+	public void setCount(String count) {
+		this.count = Integer.parseInt(count);
+	}
 
 	public String getApiId() {
 		return apiId;

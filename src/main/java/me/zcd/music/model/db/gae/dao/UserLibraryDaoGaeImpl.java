@@ -44,6 +44,24 @@ public class UserLibraryDaoGaeImpl implements UserLibraryDao {
 			try {
 				userLibrary = pm.getObjectById(UserLibraryGaeImpl.class, emailAddress);
 			} catch(JDOObjectNotFoundException e) {
+				//will return null
+			}
+		} catch(Exception e) {
+			log.warn("Exception loading user library", e);
+		} finally {
+			pm.close();
+		}
+		return userLibrary;
+	}
+	
+	@Override
+	public UserLibrary getOrCreateUserLibrary(String emailAddress) {
+		UserLibraryGaeImpl userLibrary = null;
+		PersistenceManager pm = GAEModel.get().getPersistenceManager();
+		try {
+			try {
+				userLibrary = pm.getObjectById(UserLibraryGaeImpl.class, emailAddress);
+			} catch(JDOObjectNotFoundException e) {
 				//make a new one.
 				userLibrary = (UserLibraryGaeImpl) this.createNonpersistedUserLibrary(emailAddress);
 			}
@@ -71,6 +89,7 @@ public class UserLibraryDaoGaeImpl implements UserLibraryDao {
 			} catch(JDOObjectNotFoundException e) {
 				//make a new one.
 				userLibrary = (UserLibraryGaeImpl) this.createNonpersistedUserLibrary(emailAddress);
+				pm.makePersistent(userLibrary);
 			}
 			List<Track> tracks = trackDao.getTracks(trackKeys);
 			for(Track t : tracks) {
@@ -85,6 +104,7 @@ public class UserLibraryDaoGaeImpl implements UserLibraryDao {
 				newT.setTrackKey(t.getKey());
 				userLibrary.addTrack(newT);
 			}
+			JDOHelper.makeDirty(userLibrary, "tracks");
 			pm.makePersistent(userLibrary);
 		} catch(Exception e) {
 			log.warn("Exception loading user library", e);

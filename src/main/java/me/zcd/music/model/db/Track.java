@@ -47,4 +47,8 @@ public interface Track {
 	
 	public void setTrackNumber(int i);
 	
+	public void incrementTotalPlays();
+	
+	public Long getTotalPlays();
+	
 }

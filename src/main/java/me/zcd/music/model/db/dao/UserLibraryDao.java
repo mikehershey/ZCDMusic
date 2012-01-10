@@ -20,6 +20,7 @@ public interface UserLibraryDao {
 
 	public UserLibrary persistUserLibrary(UserLibrary library);
 	public UserLibrary getUserLibrary(String emailAddress);
+	public UserLibrary getOrCreateUserLibrary(String emailAddress);
 	public UserLibrary addTracksToLibrary(List<String> trackKeys, String emailAddress);
 	public UserLibrary addTracksToLibrary(String[] trackKeys, String emailAddress);
 	public UserLibrary incrementTrackPlayCount(String trackKey, String emailAddress);

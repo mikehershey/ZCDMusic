@@ -49,7 +49,9 @@ public class DoLoadApiArtist extends LeetmlController implements Bean {
 	public String service() {
 		if(this.basicAuth.equals("heuighisohdfj2834729yfw")) {
 			MusicDiscovery md = new MusicDiscovery();
-			md.setupLogging(this.forUser);
+			if(this.forUser != null && !this.forUser.isEmpty()) {
+				md.setupLogging(this.forUser);
+			}
 			md.discoverArtistByApiId(artistApiId);
 			return "200";
 		}

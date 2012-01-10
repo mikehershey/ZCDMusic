@@ -19,6 +19,7 @@ import me.zcd.music.musicdiscovery.api.resources.AlbumSearchResult;
 import me.zcd.music.musicdiscovery.api.resources.ArtistSearchResult;
 import me.zcd.music.musicdiscovery.api.resources.TrackSearchResult;
 import me.zcd.music.musicdiscovery.api.resources.TrackSearchResults;
+import me.zcd.music.musicdiscovery.musicbrainz.MusicBrainzSettings;
 import me.zcd.music.musicdiscovery.musicbrainz.api.AlbumSearchMBImpl;
 import me.zcd.music.musicdiscovery.musicbrainz.api.ArtistSearchMBImpl;
 import me.zcd.music.musicdiscovery.musicbrainz.api.TrackSearchMBImpl;
@@ -79,9 +80,8 @@ public class MusicDiscovery {
 			return null;
 		}
 		this.saveProgressMessage("Begining import of artist " + artistSearchResult.getArtistName() + ". This may take quite a while. Feel free to leave this page, your music will still be loaded.");
-		//TODO This is the wait for MB so their servers aren't flooded. Abstract this.
 		try {
-			Thread.sleep(3000);
+			Thread.sleep(MusicBrainzSettings.WAIT_TIME);
 		} catch (InterruptedException ex) {
 			Logger.getLogger(MusicDiscovery.class.getName()).log(Level.SEVERE, null, ex);
 		}
@@ -116,10 +116,13 @@ public class MusicDiscovery {
 			log.error("MusicDiscovery: Error finding artist that was requested to load from music brainz. Most likely a temporary outage. We really should be checking for these error responses. albumSearch.findAllAlbumsByArtist(artistSearchResult.getApiID() returned null");
 			return null;
 		}
+		if(albumSearchResults.isEmpty()) {
+			return null;
+		}
 		this.saveProgressMessage("Found " + albumSearchResults.size() + " releases by your requested artist, begining import of all releases.");
 		//TODO This is the wait for MB so their servers aren't flooded. Abstract this.
 		try {
-			Thread.sleep(3000);
+			Thread.sleep(MusicBrainzSettings.WAIT_TIME);
 		} catch (InterruptedException ex) {
 			Logger.getLogger(MusicDiscovery.class.getName()).log(Level.SEVERE, null, ex);
 		}
@@ -152,9 +155,8 @@ public class MusicDiscovery {
 	private List<Track> discoverAllTracksOfAlbum(AlbumSearchResult albumSearchResult, Album a) {
 		List<Track> ret = new ArrayList<Track>();
 		TrackSearchResults trackSearchResults = trackSearch.findTracksByAlbum(albumSearchResult.getApiId());
-		//TODO This is the wait for MB so their servers aren't flooded. Abstract this.
 		try {
-			Thread.sleep(3000);
+			Thread.sleep(MusicBrainzSettings.WAIT_TIME);
 		} catch (InterruptedException ex) {
 			Logger.getLogger(MusicDiscovery.class.getName()).log(Level.SEVERE, null, ex);
 		}

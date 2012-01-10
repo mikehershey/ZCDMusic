@@ -1,10 +1,10 @@
 *::-moz-selection{
     background-color:Transparent;
-    color:#000;
+    color:black;
 }
 *::selection {
     background-color:Transparent;
-    color:#000;
+    color:black;
 }
 #ytPlayer {
 	width: 200px;
@@ -454,7 +454,9 @@ body {
 	position: absolute;
 	z-index: 100;
 	width: 200px;
-	height: 20px;
+	height: 22px;
+	width: 100%;
+	border-top: 1px solid #555;
 }
 .pointer {
 	cursor:pointer;
@@ -462,6 +464,23 @@ body {
 #show_youtube_button {
 	left: 170px;
 	position: absolute;
+	margin-top: 1px;
+}
+#bottom_right_border_fix {
+	width: 200px;
+	height: 22px;
+	position: absolute;
+	border-right: 2px solid #555;
+}
+#footer_links_holder {
+	font-size: 12px;
+	color: black;
+	margin-top: 3px;
+}
+#footer_links_holder a {
+	font-size: 12px;
+	color: black;
+	text-decoration: none;
 }
 .expand_up {
 	background-image: url('/images/expand_icons/expand_up.png');
@@ -482,4 +501,14 @@ body {
 }
 #vote_good_youtube_quality {
 	cursor: pointer;
+}
+#signout_link {
+	color: black;
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 12px;
+	padding-left: 2px;
+}
+#select_sources_dialog_table_holder table {
+	font-family:Verdana, Geneva, sans-serif;
+	font-size: 12px;
 }

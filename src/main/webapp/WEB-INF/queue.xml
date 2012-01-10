@@ -1,0 +1,15 @@
+<queue-entries>
+	<total-storage-limit>5G</total-storage-limit>
+	<queue>
+		<name>import-queue</name>
+		<rate>2/s</rate>
+		<bucket-size>10</bucket-size>
+		<max-concurrent-requests>2</max-concurrent-requests>
+	</queue>
+	<queue>
+		<name>api-import-queue</name>
+		<rate>2/s</rate>
+		<bucket-size>10</bucket-size>
+		<max-concurrent-requests>1</max-concurrent-requests>
+	</queue>
+</queue-entries>

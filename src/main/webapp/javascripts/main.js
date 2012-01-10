@@ -98,16 +98,7 @@ var youtubeSlideoutManager = new function YoutubeSlideoutManager() {
 			return;
 		}
 		inited = true;
-		var div = $("<div/>").attr("id", "youtube_object_wrapper").css("position", "absolute");
-		$('#ytPlayer').wrap(div);
-		
-		var titleDive = $("<div/>").addClass('tab_header').css("padding", "0px").width('200px').height('30px');
-		var nowPlaying = '<p id="youtube_now_playing_text" style="padding: 0px; margin: 0px; font-size: 16px;font-weight: normal; overflow: hidden;float: left;padding-top: 5px;">How\'s the quality?</p>';
-		titleDive.append(nowPlaying);
-		titleDive.append('<div id="voting_holder" style="float: right; padding-top: 3px;"><img src="/images/voting/thumbs-down.png" id="vote_bad_youtube_quality"/><img src="/images/voting/thumbs-up.png" id="vote_good_youtube_quality"/></div>');
-		
-		$('#youtube_object_wrapper').prepend(titleDive);
-		
+
 		//setup those buttons
 		$('#vote_good_youtube_quality').click(function() {
 			if($(this).attr('src') == '/images/voting/thumbs-up.png') {
@@ -125,6 +116,7 @@ var youtubeSlideoutManager = new function YoutubeSlideoutManager() {
 				$.ajax({
 					url : "/ajax/track/rateYoutubeQuality.h7m1",
 					data : ajaxData,
+					'type' : 'POST',
 					dataType: 'json',
 					success : function(data) {
 					}
@@ -133,7 +125,7 @@ var youtubeSlideoutManager = new function YoutubeSlideoutManager() {
 		});
 		$('#vote_bad_youtube_quality').click(function() {
 			if(playlistManager.getCurrentlyPlaying() == undefined) {
-				alert("Could not rate this song because you're not listening to a song! (or a bug)");
+				alert("Could not rate this song because you're not listening to a song! (or this is a bug)");
 				return;
 			}
 			var trackKey = playlistManager.getCurrentlyPlaying().trackKey;
@@ -153,6 +145,7 @@ var youtubeSlideoutManager = new function YoutubeSlideoutManager() {
 							url : "/ajax/track/rateYoutubeQuality.h7m1",
 							data : ajaxData,
 							dataType: 'json',
+							'type' : 'POST',
 							success : function(data) {
 								isVoted = true;
 								youtubePlayer.playPlayable(new Playable(data.trackKey, data.trackName, data.artistName, data.albumName, data.trackNumber));
@@ -261,37 +254,16 @@ var tabManager = new function TabManager() {
 var legalTab = new function LegalTab() {
 	
 	var showCatDialog = function() {
-		$('#areYouSureYouHateKittens').dialog({
-			modal: true,
-			width: 800,
-			buttons: {
-				"Yes, I want your pet to die.": function() {
-					$( this ).dialog( "close" );
-					$('#thankYouForBeingALawyer').dialog({
-						modal: true,
-						width: 800,
-						buttons: {
-							"Continue to Legal Contact info": function() {
-								tabManager.clearAllTabs();
-								$.ajax({
-									url : '/tabs/legal.h7m1',
-									success : function(data) {
-										$('#other_pages').css("display", "none");
-										$('#other_pages').append(data);
-										$('#other_pages').fadeIn();
-									}
-								});
-								$( this ).dialog( "close" );
-							}
-						}
-					});
-				},
-				"No! I just misclicked!!": function() {
-					$( this ).dialog( "close" );
-					document.location.href='#';
-				}
+		tabManager.clearAllTabs();
+		$.ajax({
+			url : '/tabs/legal.h7m1',
+			'type' : 'POST',
+			success : function(data) {
+				$('#other_pages').css("display", "none");
+				$('#other_pages').append(data);
+				$('#other_pages').fadeIn();
 			}
-		});
+		});	
 	}
 	
 	this.showTab = function() {
@@ -312,6 +284,7 @@ var browseTab = new function BrowseTab() {
 		tabManager.clearAllTabs();
 		$.ajax({
 			url : "/tabs/browsewarehouse.h7m1",
+			'type' : 'POST',
 			success : function(data) {
 				$('#other_pages').css("display", "none");
 				$('#other_pages').append(data);
@@ -429,6 +402,7 @@ var searchTab = new function SearchTab() {
 		tabManager.clearAllTabs();
 		$.ajax({
 			url : "/tabs/showSearchWarehouse.h7m1",
+			'type' : 'POST',
 			success : function(data) {
 				onAjaxTabLoad(data);
 			}
@@ -462,7 +436,7 @@ var playQueueTab = new function PlayQueueTab() {
 	}
 	
 	$(document).ready(function() {
-		$("#recently_played_playlist").trigger("update");
+		$("#recently_played_playlist").tablesorter();
 	});
 
 	tabManager.registerTab("playQueue", this, "playQueue", '#recently_viewed_button');
@@ -485,7 +459,7 @@ var myMusicTab = new function MyMusicTab() {
 
 	this.init = function() {
 		$('#my_music_library').tablesorter({
-			sortList: [[3,0],[4,0],[1,0]] 
+			sortList: [[3,0],[4,0],[1,0]]
 		});
 	}
 
@@ -496,71 +470,6 @@ var myMusicTab = new function MyMusicTab() {
 	}
 
 	tabManager.registerTab("myMusic", this, "myMusic", "#my_music_button");
-
-}();
-
-var showArtistTab = new function ShowArtistTab() {
-
-	var onAjaxTabLoad = function() {
-		// init javascripts for that page
-		$('.play_album_now').click(function(event) {
-			event.preventDefault();
-			// Ajax call for list of playable.
-			var albumId = $(this).attr('albumId');
-			$.ajax({
-				url : "/ajax/album/getAlbumAsPlayables.h7m1",
-				data: "id=" + albumId.replace(/&/g, '%26'),
-				dataType: 'json',
-				success : function(data) {
-					//give it to recently played playlist.
-					playQueuePlaylist.addToPlaylist(data);
-					//play it
-					playlistManager.changePlaylist(playQueuePlaylist);
-					playlistManager.playFirst();
-				}
-			});
-			return false;
-		});
-		$('.add_album_to_library').click(function(event) {
-			event.preventDefault();
-			var albumId = $(this).attr('albumId');
-			$.ajax({
-				url : "/ajax/album/getAlbumAsPlayables.h7m1",
-				data: "id=" + albumId.replace(/&/g, '%26'),
-				dataType: 'json',
-				success : function(data) {
-					myMusicPlaylist.addToPlaylist(data);
-				}
-			});
-			return false;
-		});
-		$('.show_album_button').click(function(event) {
-			event.preventDefault();
-			var albumId = $(this).attr('key');
-			showAlbumTab.gotoTab('albumKey=' + albumId);
-			return false;
-		});
-	}
-
-	this.showTab = function(queryString) {
-		tabManager.clearAllTabs();
-		$.ajax({
-			url : '/tabs/showArtist.h7m1',
-			data: queryString,
-			success : function(data) {
-				$('#other_pages').css("display", "none");
-				$('#other_pages').append(data);
-				$('#other_pages').fadeIn();
-				onAjaxTabLoad();
-			}
-		});
-	}
-
-	this.gotoTab = function(queryString) {
-		document.location.href='#showArtist?' + queryString;
-	}
-
-	tabManager.registerTab("showArtist", this, "showArtist");
 
 }();
 
@@ -595,13 +504,9 @@ var showAlbumTab = new function ShowAlbumTab() {
 			var playables = [];
 			playables.push(playable);
 			myMusicPlaylist.addToPlaylist(playables);
+			return false;
 		});
 		$('.addable_track').click(function(e) {
-			e.preventDefault();
-			$('#album_list').find('.selected').removeClass('selected');
-			$(this).addClass('selected');
-		});
-		$('.addable_track').dblclick(function(e) {
 			//add this track to play_queue
 			var playable = new Playable($(this).find('.track_id').text(), $(this).find('.library_track').text(), $(this).find('.library_artist').text(), $(this).find('.library_album').text() , $(this).find('.track_number').text());
 			var playables = [];
@@ -618,6 +523,7 @@ var showAlbumTab = new function ShowAlbumTab() {
 		$.ajax({
 			url : '/tabs/showAlbum.h7m1',
 			data: queryString.replace(/&/g, '%26'),
+			'type' : 'POST',
 			success : function(data) {
 				$('#other_pages').css("display", "none");
 				$('#other_pages').append(data);
@@ -641,6 +547,7 @@ var loginTab = new function LoginTab() {
 		tabManager.clearAllTabs();
 		$.ajax({
 			url : "/tabs/login.h7m1",
+			'type' : 'POST',
 			success : function(data) {
 				$('#other_pages').css("display", "none");
 				$('#other_pages').append(data);
@@ -654,6 +561,29 @@ var loginTab = new function LoginTab() {
 	}
 
 	tabManager.registerTab("login", this, "login", '#login_button');
+
+}();
+
+var privacyTab = new function PrivacyTab() {
+
+	this.showTab = function() {
+		tabManager.clearAllTabs();
+		$.ajax({
+			url : "/tabs/privacy.h7m1",
+			'type' : 'POST',
+			success : function(data) {
+				$('#other_pages').css("display", "none");
+				$('#other_pages').append(data);
+				$('#other_pages').fadeIn();
+			}
+		});
+	}
+
+	this.gotoTab = function() {
+		document.location.href='#privacy';
+	}
+
+	tabManager.registerTab("privacy", this, "privacy", '#privacy_button');
 
 }();
 
@@ -677,7 +607,7 @@ function Playable(trackKey, trackName, artistName, albumName, trackNumber) {
 		var ret = undefined;
 		// make a server call to find the id based on song info
 		$.ajax({
-			type : "GET",
+			type : "POST",
 			url : "/FindYoutubeIdForTrack.h7m1",
 			data : "trackKey=" + self.trackKey.replace(/&/g, '%26'),
 			async: false,
@@ -685,6 +615,9 @@ function Playable(trackKey, trackName, artistName, albumName, trackNumber) {
 				ret = data;
 			}
 		});
+		if(ret.length > 11) {
+			ret = ret.substr(0,11);
+		}
 		return ret;
 	}
 
@@ -710,6 +643,8 @@ function Playlist() {
 	this.prev = new Function();
 
 	this.onPlay = new Function();
+
+	this.incrementCuedPlayCount = new Function();
 
 }
 
@@ -756,6 +691,13 @@ var myMusicPlaylist = new function MyMusicPlaylist() {
 	this.syncCued = function() {
 		youtubePlayer.cuePlayable(getCuedPlayable());
 	}
+	
+	this.incrementCuedPlayCount = function() {
+		var cued = $('#my_music_library').find('.cued');
+		var count = parseInt(cued.find(".library_plays").text());
+		count++;
+		cued.find(".library_plays").text(count);
+	}
 
 	var addPlayable = function(playable) {
 		var row = $('<tr class="playable_track" />');
@@ -764,6 +706,7 @@ var myMusicPlaylist = new function MyMusicPlaylist() {
 		row.append('<td class="library_track">' + playable.trackName + '</td>');
 		row.append('<td class="library_artist">' + playable.artistName + '</td>');
 		row.append('<td class="library_album">' + playable.albumName + '</td>');
+		row.append('<td class="library_plays">' + playable.plays + '</td>');
 		row.append('<td style="display: none;" class="track_id">' + playable.trackKey +'</td>');
 		$("#my_music_library").find('tbody').prepend(row);
 	}
@@ -772,6 +715,7 @@ var myMusicPlaylist = new function MyMusicPlaylist() {
 		var trackKeys = [];
 		//loop over the playables backwards since tracks are always pushed to the front of playlist.
 		for(i = 0; i < playables.length; i++) {
+			playables[i].plays = 0;
 			trackKeys.push(playables[i].trackKey);
 		}
 		var ajaxData = {
@@ -780,41 +724,50 @@ var myMusicPlaylist = new function MyMusicPlaylist() {
 		$.ajax({
 			url : "/addTracksToLibrary.h7m1",
 			data : ajaxData,
+			'type' : 'POST',
 			success : function(data) {
 				for(i = playables.length - 1; i >= 0 ; i--) {
 					addPlayable(playables[i]);
 				}
 				//unbind all the old click things
 				$('#my_music_library .playable_track').unbind('click');
-				$('#my_music_library .playable_track').unbind('dblclick');
-				self.init();
 				myMusicTab.gotoTab();
+				self.reInit();	
+			},
+			error: function(xhr) {
+				if(xhr.status == 403) {
+					$('#need_to_login').dialog({
+						width: 600,
+						height: 250
+					})
+				}
 			}
 		});
 
+	}
+	
+	this.reInit = function() {
+		playlistManager.changePlaylist(self);
+		// bindings for the playlist
+		$('#my_music_library .playable_track').click(function(e) {
+			playlistManager.changePlaylist(self);
+			e.preventDefault();
+			$('#my_music_library').find('.selected').removeClass('selected');
+			$(this).addClass('selected');
+			$('#my_music_library').find('.cued').removeClass('cued');
+			$(this).addClass("cued");
+			youtubePlayer.playPlayable(getCuedPlayable());
+		});
+		var library = $('#my_music_library');
+		library.trigger({type:'update', callback : function(config){
+			$(this).trigger("sorton", [[[3,0],[4,0],[1,0]]]);
+		}});
 	}
 
 	this.init = function() {
 		playlistManager.changePlaylist(self);
 		// bindings for the playlist
-		$('.playable_track').click(function(e) {
-			e.preventDefault();
-			$('#my_music_library').find('.selected')
-			.removeClass('selected');
-			$(this).addClass('selected');
-			// first queue the song
-			if (!(youtubePlayer.isPlaying()
-				|| youtubePlayer.isPaused() || youtubePlayer
-				.isBuffering())) {
-				// give the row cue'd class
-				$('#my_music_library').find('.cued')
-				.removeClass('cued');
-				$(this).addClass("cued")
-				self.syncCued();
-			}
-		})
-
-		$('.playable_track').dblclick(function(e) {
+		$('#my_music_library .playable_track').click(function(e) {
 			playlistManager.changePlaylist(self);
 			e.preventDefault();
 			$('#my_music_library').find('.selected').removeClass('selected');
@@ -880,6 +833,11 @@ var playQueuePlaylist = new function PlayQueuePlaylist() {
 	this.syncCued = function() {
 		youtubePlayer.cuePlayable(getCuedPlayable());
 	}
+	
+	this.incrementCuedPlayCount = function() {
+		//TODO play count in playlists? Not yet.
+		//needs this function for interface conformance
+	}
 
 	var addPlayable = function(playable) {
 		var row = $('<tr class="playable_track" />');
@@ -888,43 +846,29 @@ var playQueuePlaylist = new function PlayQueuePlaylist() {
 		row.append('<td class="library_track">' + playable.trackName + '</td>');
 		row.append('<td class="library_artist">' + playable.artistName + '</td>');
 		row.append('<td class="library_album">' + playable.albumName + '</td>');
-		row.append('<td><a href="#" class="add_to_library">Add to library</a></td>');
+		row.append('<td><input type="submit" class="add_to_library_button mac_style_button" value="Add to library"/></td>');
 		row.append('<td style="display: none;" class="track_id">' + playable.trackKey +'</td>');
 		$("#recently_played_playlist").find('tbody').prepend(row);
 	}
 
 	this.addToPlaylist = function(playables) {
-		//loop over the playables backwards since tracks are always pushed to the front of playlist.
+		//TODO playables sort by track number
+		playables.sort(function(a,b) {
+			return a.trackNumber - b.trackNumber;
+		});
 		for(i = playables.length -1; i >= 0; i--) {
 			addPlayable(playables[i]);
 		}
-		//unbind all the old click things
-		$('#recently_played_playlist .playable_track').unbind('click');
-		$('#recently_played_playlist .playable_track').unbind('dblclick');
-		$("#recently_played_playlist").tablesorter({
-			sortList: [[3,0],[4,0],[1,0]] 
-		});
 		self.init();
 		playQueueTab.gotoTab();
 	}
 
 	this.init = function() {
+		//unbind all the old click things
+		$('#recently_played_playlist .playable_track').unbind('click');
+		$('#recently_played_playlist .add_to_library_button').unbind('click');
 		// bindings for the playlist
 		$('#recently_played_playlist .playable_track').click(function(e) {
-			e.preventDefault();
-			$('#recently_played_playlist').find('.selected').removeClass('selected');
-			$(this).addClass('selected');
-			// first queue the song
-			if (!(youtubePlayer.isPlaying() || youtubePlayer.isPaused() || youtubePlayer.isBuffering())) {
-				// give the row cue'd class
-				playlistManager.changePlaylist(self);
-				$('#recently_played_playlist').find('.cued').removeClass('cued');
-				$(this).addClass("cued")
-				self.syncCued();
-			}
-		});
-
-		$('#recently_played_playlist .playable_track').dblclick(function(e) {
 			playlistManager.changePlaylist(self);
 			e.preventDefault();
 			$('#recently_played_playlist').find('.selected').removeClass('selected');
@@ -932,6 +876,15 @@ var playQueuePlaylist = new function PlayQueuePlaylist() {
 			$('#recently_played_playlist').find('.cued').removeClass('cued');
 			$(this).addClass("cued");
 			youtubePlayer.playPlayable(getCuedPlayable());
+			return false;
+		});
+		$('#recently_played_playlist .add_to_library_button').click(function(e) {
+			var playables = [];
+			var track = $(this).parent().parent();
+			var playable = new Playable(track.find('.track_id').text(), track.find('.library_track').text(), track.find('.library_artist').text(), track.find('.library_album').text(), track.find('.track_number').text());
+			playables.push(playable);
+			myMusicPlaylist.addToPlaylist(playables);
+			return false;
 		});
 	}
 
@@ -943,6 +896,10 @@ var playlistManager = new function PlaylistManager(playlist) {
 
 	var currentPlaylist = playlist;
 	var currentlyPlaying;
+	
+	this.getCurrentPlaylist = function() {
+		return currentPlaylist;
+	}
 	
 	this.getCurrentlyPlaying = function() {
 		return currentlyPlaying;
@@ -1011,8 +968,7 @@ var playlistManager = new function PlaylistManager(playlist) {
 function YoutubePlayer(playerId, playlistManager) {
 	var self = this;
 
-	var player = $("#" + playerId);
-	var playerElement = player.get(0);
+	var Jplayer = $("#" + playerId);
 	var isPlaying = false;
 	var slider = $("#slider-range-min");
 	var state = -1;
@@ -1034,16 +990,19 @@ function YoutubePlayer(playerId, playlistManager) {
 	this.onPlayerStateChange = function(newState) {
 		// unstarted (-1), ended (0), playing (1), paused (2), buffering (3),
 		// video cued (5).
-		state = newState;
-		switch (newState) {
+		state = newState.data;
+		switch (state) {
 			case -1:
 				// nothing to do
 				break;
 			case 0:
+				//Increment play count for this song
+				incrementPlayCount(currentPlaylistManager);
+				//play next song
 				currentPlaylistManager.playNext();
 				break;
 			case 1:
-				playerElement.setPlaybackQuality('large');
+				player.setPlaybackQuality('large');
 				setTimeout(function() {
 					youtubePlayer.updateInfo();
 				}, 250);
@@ -1060,14 +1019,18 @@ function YoutubePlayer(playerId, playlistManager) {
 				// give playing class to the current song
 				break;
 			case 5:
-				playerElement.setPlaybackQuality('large');
+				player.setPlaybackQuality('large');
 				break;
 			default:
 		}
 	}
+	
+	this.didYoutubeLoad = function() {
+		return player != undefined;
+	}
 
 	this.updateInfo = function() {
-		var val = ytplayer.getCurrentTime() / playerElement.getDuration() * 100;
+		var val = player.getCurrentTime() / player.getDuration() * 100;
 		slider.slider("value", val);
 		if (youtubePlayer.isPlaying()) {
 			setTimeout(function() {
@@ -1081,8 +1044,8 @@ function YoutubePlayer(playerId, playlistManager) {
 		slider.slider("value", 0);
 		$('#now_playing_artist').text(artist);
 		$('#now_playing_track').text(track);
-		playerElement.cueVideoById(id);
-		playerElement.setPlaybackQuality('large');
+		player.cueVideoById(id);
+		player.setPlaybackQuality('large');
 		//reset the thumbs up to be green
 		youtubeSlideoutManager.resetVoteRecord();
 	}
@@ -1110,11 +1073,11 @@ function YoutubePlayer(playerId, playlistManager) {
 	}
 
 	this.play = function() {
-		player.get(0).playVideo();
+		player.playVideo();
 	}
 
 	this.pause = function() {
-		player.get(0).pauseVideo();
+		player.pauseVideo();
 	}
 
 	this.mute = function() {
@@ -1132,46 +1095,53 @@ function YoutubePlayer(playerId, playlistManager) {
 
 }
 
+function incrementPlayCount(playListManager) {
+	//increment the view.
+	playListManager.getCurrentPlaylist().incrementCuedPlayCount();
+	//inform the server of the play
+	var trackKey = playListManager.getCurrentlyPlaying().trackKey;
+	$.ajax({
+		url : "/ajax/stats/reportTrackListen.h7m1",
+		'type' : 'POST',
+		data : {"trackKey" : trackKey}
+		//don't really care if this does or doesn't work
+	});
+}
+
 // This function is called when an error is thrown by the player
 function onPlayerError(errorCode) {
 	alert("An error occured of type:" + errorCode);
 }
 
-// This function is automatically called by the player once it loads
-function onYouTubePlayerReady() {
-	ytplayer = document.getElementById("ytPlayer");
-	ytplayer.addEventListener("onStateChange",
-		"youtubePlayer.onPlayerStateChange");
-	// ytplayer.addEventListener("onError", "onPlayerError");
-	// make a new global youtube object
-	window.youtubePlayer = new YoutubePlayer("ytPlayer", playlistManager);
-	// set a default video
-	// TODO show an ad here.
-	//ytplayer.cueVideoById("GL1-33ZDgPY");
+function onPlayerReady(evt) {
 	youtubeSlideoutManager.init();
+}
+
+function onPlayerStateChange(event) {
+	youtubePlayer.onPlayerStateChange(event)
+}
+
+function onError(event) {
+	//TODO look for the copyright violation error codes, and automatically downvote them
+	alert("Error: " + event.data);
+}
+
+function onYouTubePlayerAPIReady() {
+	window.youtubePlayer = new YoutubePlayer("videoDiv", playlistManager);
+	player = new YT.Player('videoDiv', {
+		height: '200',
+		width: '200',
+		videoId: 'DFZC5-0XwU8',
+		events: {
+			'onReady': onPlayerReady,
+			'onStateChange': onPlayerStateChange,
+			'onError': onError
+		}
+	});
 }
 
 $(document).ready(function() {
 
-	// load the youtube player
-	// Lets Flash from another domain call JavaScript
-	var params = {
-		allowScriptAccess : "always",
-		value: "transparent"
-	};
-	// The element id of the Flash embed
-	var atts = {
-		id : "ytPlayer",
-		wmode : "transparent"
-	};
-	// All of the magic handled by SWFObject
-	// (http://code.google.com/p/swfobject/)
-	swfobject.embedSWF(
-		"http://www.youtube.com/v/XZ5TajZYW6Y?enablejsapi=1&version=3",
-		"videoDiv", "480", "295", "8", null, null,
-		params, atts
-		);
-			
 	resizer.resize();
 	initChain.initAll();
 	tabManager.showPoundedPage();
@@ -1198,7 +1168,7 @@ $(document).ready(function() {
 
 	$.loading({
 		onAjax:true,
-		mask:true, 
+		mask:false, 
 		img:'/jquery.loading/loading.gif', 
 		align:'center'
 	});
@@ -1226,7 +1196,7 @@ $(document).ready(function() {
 		minLength : 1,
 		select : function(event, ui) {
 			if (ui.item.type == 'TRACK') {
-				var playable = new Playable(ui.item.key, ui.item.track, ui.item.artist, ui.item.youtubeId, ui.item.album, ui.item.trackNumber);
+				var playable = new Playable(ui.item.key, ui.item.track, ui.item.artist, ui.item.album, ui.item.trackNumber);
 				var playables = [];
 				playables[0] = playable;
 				playQueuePlaylist.addToPlaylist(playables);
@@ -1267,9 +1237,15 @@ $(document).ready(function() {
 		} else {
 			item.queryString = encodeURIComponent(item.key);
 			var li = $("<li/>").data("item.autocomplete", item).data("trackKey", item.key).height('30px').css('margin-top', '3px').css('margin-bottom', '3px');
-			li.append("<a href='#' style='height: 30px;'><h2 style='font-size: 12px;overflow: hidden;white-space: nowrap;'>" + item.track + "</h2><h3 style='font-size: 10px;overflow: hidden;white-space: nowrap;'>" + item.artist + "</h3></a>")
+			li.append("<a href='#' style='height: 30px;'><h2 style='font-size: 12px;overflow: hidden;white-space: nowrap;'>" + item.track + "</h2><h3 style='font-size: 10px;overflow: hidden;white-space: nowrap;'>" + item.artist + " - " + item.album + "</h3></a>")
 			return li.appendTo(ul);
 		}
 	};
-
+	
+	setTimeout(function() {
+		if(!youtubePlayer || !youtubePlayer.didYoutubeLoad()) {
+			alert('Youtube failed to load. This is a temporary outage on Youtube\'s side. Reload the page to try again.')
+		}
+	}, 1000);
+   
 });

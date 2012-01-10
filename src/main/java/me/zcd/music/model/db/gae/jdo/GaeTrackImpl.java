@@ -16,8 +16,7 @@ import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import java.util.ArrayList;
-import java.util.List;
+import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.NotPersistent;
 import me.zcd.music.Settings;
 import me.zcd.music.model.db.Track;
@@ -43,19 +42,45 @@ public class GaeTrackImpl implements Track {
 	private String title;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private String youtubeLocation;
 	
 	@Persistent
 	private String genre;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private String artistName;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private String albumName;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private int trackNumber;
+	
+	@Persistent
+	//make sure to use the object wrappers so Null can be assigned to them.
+	//sharded counters can't be used B/C this needs to be queriable, as such
+	//this field is no accurate, and should not be used for anything other then stats
+	private Long totalPlays;
+
+	public Long getTotalPlays() {
+		if(totalPlays == null) {
+			totalPlays = new Long(0);
+		}
+		return totalPlays;
+	}
+
+	public void setTotalPlays(Long totalPlays) {
+		this.totalPlays = totalPlays;
+	}
+	
+	@Override
+	public void incrementTotalPlays() {
+		this.setTotalPlays(this.getTotalPlays() + 1);
+	}
 
 	@Override
 	public void setKey(String key) {

@@ -22,8 +22,15 @@ var requestTab = new function RequestTab() {
 				success : function(data) {
 					showProgress(data);
 				},
-				error : function(data) {
-					alert("Your request to add a new artist failed!")
+				error : function(xhr) {
+					if(xhr.status == 403) {
+						$('#need_to_login').dialog({
+							width: 600,
+							height: 250
+						})
+					} else {
+						alert("Your request to add a new artist failed!")
+					}
 				}
 			});
 			return false;

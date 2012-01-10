@@ -26,6 +26,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import java.text.SimpleDateFormat;
 import java.util.logging.Logger;
 import javax.jdo.PersistenceManager;
+import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.NotPersistent;
 import me.zcd.leetml.gae.GAEModel;
 import me.zcd.leetml.image.Image;
@@ -54,24 +55,31 @@ public class GaeAlbumImpl implements Album {
 	private String name;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private String artistName;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private Date releaseDate;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private List<String> trackKeys;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private String albumArtKey;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private String albumArtUrl;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private String type;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private List<String> searchTerms = new ArrayList<String>();
 
 	public String getAlbumArtUrl() {
@@ -109,12 +117,8 @@ public class GaeAlbumImpl implements Album {
 	public String getName() {
 		
 		if(this.name != null) {
-			
-			//handles data migration to include searchTerms
-			//TODO remove this once data migration is complete
-			migrateToHavingSearchTerms();
-			
-			return StringUtils.formatName(this.name);
+			//album | single | ep | compilation | soundtrack
+			return StringUtils.formatName(this.name.replace("[album]", "").replace("[single]", "").replace("[ep]", "").replace("[compilation]", "").replace("[soundtrack]", ""));
 		}
 		return null;
 	}

@@ -9,16 +9,20 @@
  */
 package me.zcd.music.controllers;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import me.zcd.leetml.LeetmlController;
 import me.zcd.leetml.bean.Bean;
 import me.zcd.leetml.bean.validation.ValidationRule;
 import me.zcd.leetml.bean.validation.rules.ManagedField;
+import me.zcd.music.Settings;
 import me.zcd.music.model.UserLibraryTrack;
 import me.zcd.music.model.db.Track;
 import me.zcd.music.model.db.UserLibrary;
@@ -48,20 +52,38 @@ public class Index extends LeetmlController implements Bean {
 		if(this.req.getHeader("User-Agent").toLowerCase().contains("msie")) {
 			return "noIE";
 		}
+		/*
+		if(this.req.getHeader("User-Agent").toLowerCase().contains("iphone")) {
+			try {
+				this.resp.sendRedirect("http://iphone.music.zcd.me");
+			} catch (IOException ex) {
+				Logger.getLogger(Index.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
+		 */
 		//check the current user
 		String userEmail = userService.getCurrentUsersEmailAddress();
 		String email = showLibrary;
+		com.google.appengine.api.users.UserService userService = com.google.appengine.api.users.UserServiceFactory.getUserService();
+		if(userEmail == null) {
+			this.getTemplateContext().put("loginLink", userService.createLoginURL("/"));
+		} else {
+			this.getTemplateContext().put("logoutLink", userService.createLogoutURL("/"));
+		}
 		if(email == null) {
 			email = userEmail;
 		}
 		Set<UserLibraryTrack> tracks;
 		if(email != null && !email.isEmpty()) {
 			this.getTemplateContext().put("userEmail", userEmail);
-			UserLibrary userLibrary = userLibraryDao.getUserLibrary(email);
+			UserLibrary userLibrary = userLibraryDao.getOrCreateUserLibrary(email);
 			if(userLibrary != null) {
 				tracks = userLibrary.getTracks();
 				this.getTemplateContext().put("userTracks", tracks);
 			}
+		}
+		if(Settings.shouldMinify()) {
+			this.getTemplateContext().put("minify", true);
 		}
 		return "homepage";
 	}

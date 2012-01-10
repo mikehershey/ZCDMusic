@@ -42,4 +42,14 @@ public class KeygenService {
 		return createAlbumKey(artistName, albumName) + Settings.KEY_SEPERATOR + trackName;
 	}
 	
+	public static String getArtistFromTrackKey(String trackKey) {
+		String[] parts = trackKey.split(Settings.KEY_SEPERATOR);
+		return parts[0];
+	}
+	
+	public static String getTrackFromTrackKey(String trackKey) {
+		String[] parts = trackKey.split(Settings.KEY_SEPERATOR);
+		return parts[2];
+	}
+	
 }

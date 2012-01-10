@@ -9,6 +9,8 @@
  */
 package me.zcd.music.controllers.tabs;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,9 +24,20 @@ import me.zcd.leetml.bean.validation.rules.RequiredRule.Required;
 import me.zcd.music.model.db.Artist;
 import me.zcd.music.model.db.dao.ArtistDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
+import me.zcd.music.utils.KeyValue;
 
 public class ShowArtist extends LeetmlController implements Bean {
 
+	private static final List<KeyValue<String,String>> albumTypes = new ArrayList<KeyValue<String,String>>();
+	static {
+		albumTypes.add(new KeyValue("All releases", "all"));
+		albumTypes.add(new KeyValue("Albums", "album"));
+		albumTypes.add(new KeyValue("Compilations","compilation"));
+		albumTypes.add(new KeyValue("EPs", "ep"));
+		albumTypes.add(new KeyValue("Singles", "single"));
+		albumTypes.add(new KeyValue("Soundtracks", "soundtrack"));
+	}
+	
 	private static final long serialVersionUID = 1L;
 
 	private ArtistDao artistDao = DaoProviderFactory.getProvider().getArtistDao();
@@ -37,13 +50,13 @@ public class ShowArtist extends LeetmlController implements Bean {
 		this.id = id;
 	}
 	
-	
 	@Override
 	public String service() {
 		//load the artist
 		Artist artist = this.artistDao.getArtist(id);
 		this.getTemplateContext().put("artist", artist);
 		this.getTemplateContext().put("albums", this.artistDao.getAlbumsFromArtist(artist));
+		this.getTemplateContext().put("albumTypes", albumTypes);
 		return "showArtist";
 	}
 	
@@ -55,6 +68,4 @@ public class ShowArtist extends LeetmlController implements Bean {
 		resp.setStatus(400);
 	}
 
-	
-	
 }

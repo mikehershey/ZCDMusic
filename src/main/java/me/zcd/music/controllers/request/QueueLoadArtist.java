@@ -34,7 +34,10 @@ public class QueueLoadArtist extends LeetmlController implements Bean {
 	
 	@Override
 	public String service() {
-		Queue queue = QueueFactory.getDefaultQueue();
+		Queue queue = QueueFactory.getQueue("import-queue");
+		if(userService.getCurrentUsersEmailAddress() == null) {
+			return "403";
+		}
 		queue.add(withUrl("/tasks/DoLoadApiArtist.h7m1").param("artistApiId", this.artistApiId).param("basicAuth", "heuighisohdfj2834729yfw").param("forUser", userService.getCurrentUsersEmailAddress()).method(Method.GET));
 		try {
 			resp.getOutputStream().println("Added to queue.");

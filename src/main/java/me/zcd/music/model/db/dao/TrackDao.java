@@ -21,5 +21,6 @@ public interface TrackDao {
 	public void persistTrack(Track track);
 	public void persistAllTracks(List<Track> tracks);
 	public void setYoutubeId(String trackId, String youtubeId);
+	public void incrementGlobalPlayCount(String trackId);
 	
 }

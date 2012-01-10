@@ -19,6 +19,7 @@ import javax.jdo.annotations.PrimaryKey;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import java.util.ArrayList;
+import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.NotPersistent;
 import me.zcd.music.model.db.Artist;
 import me.zcd.music.model.db.dao.ArtistDao;
@@ -39,28 +40,23 @@ public class GaeArtistImpl implements Artist {
 	private String name;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private List<String> trackKeys;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private List<String> albumKeys;
 	
-	@Persistent 
+	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private String artistArtUrl;
 	
 	@Persistent
 	private String genre;
 	
 	@Persistent
+	@Extension(vendorName="datanucleus", key="gae.unindexed", value="true")
 	private List<String> searchTerms = new ArrayList<String>();
-
-	private void migrateToHavingSearchTerms() {
-		if(searchTerms.size() < 1) {
-			for(String titlePart : StringUtils.stripSpecialCharacters(name).split(" ")) {
-				this.searchTerms.add(titlePart);
-			}
-			artistDao.persistArtist(this);
-		}
-	}
 	
 	@Override
 	public String getKey() {
@@ -137,11 +133,7 @@ public class GaeArtistImpl implements Artist {
 
 	@Override
 	public String getName() {
-		if(this.name != null) {
-			
-			//TODO remove this once migration is finished
-			migrateToHavingSearchTerms();
-			
+		if(this.name != null) {			
 			return StringUtils.formatName(this.name);
 		}
 		return null;

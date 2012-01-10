@@ -28,6 +28,7 @@ import me.zcd.music.model.db.gae.jdo.GaeTrackImpl;
 
 import com.google.gson.Gson;
 import java.util.Map;
+import me.zcd.leetml.LeetmlAjaxController;
 import me.zcd.leetml.gae.GAEModel;
 import me.zcd.leetml.logging.Log;
 import me.zcd.leetml.logging.LogFactory;
@@ -35,7 +36,7 @@ import me.zcd.music.model.db.Artist;
 import me.zcd.music.model.db.dao.ArtistDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 
-public class SearchWarehouse extends HttpServlet implements Bean {
+public class SearchWarehouse extends LeetmlAjaxController implements Bean {
 	
 	Log log = LogFactory.getLogger(SearchWarehouse.class);
 
@@ -58,9 +59,7 @@ public class SearchWarehouse extends HttpServlet implements Bean {
 		this.type = type;
 	}
 	
-	@SuppressWarnings("unchecked")
-	@Override
-	public void service(HttpServletRequest req, HttpServletResponse resp) {
+	public Object service() {
 		List<JsonResult> matches = new ArrayList<JsonResult>();
 		if(type.equals("ANY") || type.equals("ARTIST")) {
 			this.term = this.term.toLowerCase().trim();
@@ -114,13 +113,7 @@ public class SearchWarehouse extends HttpServlet implements Bean {
 				matches.add(new JsonResult(t.getKey(), "TRACK", t.getArtistName(), t.getAlbumName(), t.getTitle(), null, t.getYoutubeLocation(), Integer.toString(t.getTrackNumber())));
 			}
 		}
-		Gson gson = new Gson();
-		String json = gson.toJson(matches);
-		try {
-			resp.getWriter().write(json);
-		} catch (IOException e) {
-		}
-		
+		return matches;
 	}
 	
 	public static class JsonResult {

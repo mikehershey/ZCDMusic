@@ -9,17 +9,15 @@
  */
 package me.zcd.music.controllers.ajax.album;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.Gson;
 import java.util.Map;
-import javax.servlet.http.HttpServlet;
 
+import me.zcd.leetml.LeetmlAjaxController;
 import me.zcd.leetml.bean.Bean;
 import me.zcd.leetml.bean.validation.ValidationRule;
 import me.zcd.leetml.bean.validation.rules.ManagedField;
@@ -30,7 +28,7 @@ import me.zcd.music.model.db.dao.AlbumDao;
 import me.zcd.music.model.db.dao.provider.DaoProviderFactory;
 import me.zcd.music.utils.StringUtils;
 
-public class GetAlbumAsPlayables extends HttpServlet implements Bean {
+public class GetAlbumAsPlayables extends LeetmlAjaxController implements Bean {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -43,9 +41,9 @@ public class GetAlbumAsPlayables extends HttpServlet implements Bean {
 	public void setId(String id) {
 		this.id = id;
 	}
-	
+
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp) {
+	public Object service() {
 		List<Playable> ret = new ArrayList<Playable>();
 		Album album = albumDao.getAlbum(id);
 		List<Track> tracks = albumDao.getAllTracks(album);
@@ -59,12 +57,7 @@ public class GetAlbumAsPlayables extends HttpServlet implements Bean {
 			p.trackNumber = Integer.toString(track.getTrackNumber());
 			ret.add(p);
 		}
-		Gson gson = new Gson();
-		String json = gson.toJson(ret);
-		try {
-			resp.getWriter().write(json);
-		} catch (IOException e) {
-		}
+		return ret;
 	}
 
 	public static class Playable {

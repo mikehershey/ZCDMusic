@@ -1,7 +1,5 @@
 package me.zcd.music.musicdiscovery.musicbrainz.api;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -11,7 +9,6 @@ import me.zcd.leetml.logging.LogFactory;
 import me.zcd.music.musicdiscovery.api.ArtistSearch;
 import me.zcd.music.musicdiscovery.api.resources.ArtistSearchResult;
 import me.zcd.music.musicdiscovery.musicbrainz.MusicBrainzSettings;
-import me.zcd.music.utils.URLFetch;
 import org.antlr.stringtemplate.StringTemplate;
 import org.apache.commons.digester3.Digester;
 
@@ -37,8 +34,7 @@ public class ArtistSearchMBImpl implements ArtistSearch {
 		return null;
 	}
 	
-	private List<ArtistSearchResult> buildResultFromXml(String xmlResult) {
-		InputStream is = new ByteArrayInputStream(xmlResult.getBytes());
+	private List<ArtistSearchResult> buildResultFromXml(String url) {
 		Digester digester = new Digester();
 		digester.addObjectCreate("*/artist-list", ArrayList.class);
 		digester.addObjectCreate("*/artist-list/artist", ArtistSearchResult.class);
@@ -48,10 +44,13 @@ public class ArtistSearchMBImpl implements ArtistSearch {
 		digester.addSetNext("*/artist-list/artist", "add");
 		
 		List<ArtistSearchResult> artistSearchResult = null;
-		try {
-			artistSearchResult = digester.parse(is);
-		} catch (Exception e) {
-			
+		for(int i = 0; i < 5; i++) {
+			try {
+				artistSearchResult = digester.parse(url);
+				break;
+			} catch (Exception e) {
+				log.error("error parsing xml", e);
+			}
 		}
 		return artistSearchResult;
 	}
@@ -73,8 +72,7 @@ public class ArtistSearchMBImpl implements ArtistSearch {
 		}
         query.setAttribute("artist", name);
 		query.setAttribute("limit", numResults);
-		String xmlResult = URLFetch.getUrl(query.toString());
-		return buildResultFromXml(xmlResult);
+		return buildResultFromXml(query.toString());
 	}
 
 	//http://musicbrainz.org/ws/2/artist/8d3ee4ba-be21-470c-bb7c-4c124c3eb989
@@ -88,12 +86,10 @@ public class ArtistSearchMBImpl implements ArtistSearch {
 		} catch (UnsupportedEncodingException ex) {
 		}
         query.setAttribute("artistApiId", artistApiId);
-		String xmlResult = URLFetch.getUrl(query.toString());
-		return getArtistFromXml(xmlResult);
+		return getArtistFromXml(query.toString());
 	}
 	
-	private ArtistSearchResult getArtistFromXml(String xmlResult) {
-		InputStream is = new ByteArrayInputStream(xmlResult.getBytes());
+	private ArtistSearchResult getArtistFromXml(String url) {
 		Digester digester = new Digester();
 		digester.addObjectCreate("*/artist", ArtistSearchResult.class);
 		digester.addSetProperties("*/artist", "id", "apiID");
@@ -101,11 +97,15 @@ public class ArtistSearchMBImpl implements ArtistSearch {
 		digester.addCallMethod("*/artist/disambiguation", "setDisambiguation",0);
 		
 		ArtistSearchResult artistSearchResult = null;
-		try {
-			artistSearchResult = digester.parse(is);
-		} catch (Exception e) {
-			
+		for(int i = 0; i < 5; i++) {
+			try {
+				artistSearchResult = digester.parse(url);
+				break;
+			} catch (Exception e) {
+				log.warn("Failed to parse xml " , e);
+			}
 		}
+		
 		return artistSearchResult;
 	}
 	

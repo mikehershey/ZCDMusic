@@ -29,4 +29,8 @@ public class Settings {
 		return MusicDiscoveryServices.MusicBrainz;
 	}
 	
+	public static boolean shouldMinify() {
+		return true;
+	}
+	
 }

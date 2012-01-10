@@ -59,15 +59,10 @@ public class FindYoutubeIdForTrack extends HttpServlet implements Bean {
 	public void service(HttpServletRequest req, HttpServletResponse resp) {
 		// get the url
 		try {
-			String email = UserServiceFactory.getUserService().getCurrentUsersEmailAddress();
-			if(email != null) {
-				//update the users play count
-				userLibraryDao.incrementTrackPlayCount(trackKey, email);
-			}
 			//lookup the track based on ID
 			log.info("Looking up youtube song for track: " + this.trackKey);
 			Track track = this.trackDao.getTrack(this.trackKey);
-			System.out.println("Found track info: " + track.getArtistName() + " - " + track.getTitle());
+			log.debug("Found track info: " + track.getArtistName() + " - " + track.getTitle());
 			String youtubeId = null;
 			if(track.getYoutubeLocation() != null && !track.getYoutubeLocation().isEmpty()) {
 				youtubeId = track.getYoutubeLocation();

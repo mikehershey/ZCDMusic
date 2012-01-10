@@ -2,6 +2,8 @@ package me.zcd.music.musicdiscovery.musicbrainz.api;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import me.zcd.leetml.logging.Log;
@@ -10,7 +12,6 @@ import me.zcd.music.musicdiscovery.api.TrackSearch;
 import me.zcd.music.musicdiscovery.api.resources.TrackSearchResult;
 import me.zcd.music.musicdiscovery.api.resources.TrackSearchResults;
 import me.zcd.music.musicdiscovery.musicbrainz.MusicBrainzSettings;
-import me.zcd.music.utils.URLFetch;
 import org.antlr.stringtemplate.StringTemplate;
 import org.apache.commons.digester3.Digester;
 
@@ -33,13 +34,10 @@ public class TrackSearchMBImpl implements TrackSearch {
 		} catch (UnsupportedEncodingException ex) {
 		}
         query.setAttribute("albumApiId", albumApiId);
-		String xmlResult = URLFetch.getUrl(query.toString());
-		return buildResultFromXml(xmlResult);
+		return buildResultFromXml(query.toString());
 	}
 	
-	private TrackSearchResults buildResultFromXml(String xmlResult) {
-		log.info(xmlResult);
-		InputStream is = new ByteArrayInputStream(xmlResult.getBytes());
+	private TrackSearchResults buildResultFromXml(String url) {
 		Digester digester = new Digester();
 		digester.addObjectCreate("*/medium-list", TrackSearchResults.class);
 		digester.addObjectCreate("*/track", TrackSearchResult.class);
@@ -49,10 +47,13 @@ public class TrackSearchMBImpl implements TrackSearch {
 		digester.addSetNext( "*/track", "addTrackSearchResult");
 		
 		TrackSearchResults trackSearchResults = null;
-		try {
-			trackSearchResults = digester.parse(is);
-		} catch (Exception e) {
-			
+		for(int i = 0; i < 5; i++) {
+			try {
+				trackSearchResults = digester.parse(url);
+				break;
+			} catch (Exception e) {
+				log.error("error parsing track results", e);
+			}
 		}
 		return trackSearchResults;
 	}

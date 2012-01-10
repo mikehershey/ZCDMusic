@@ -31,6 +31,7 @@ var youtubeTab = new function YoutubeTab() {
 				$.ajax({
 					url : "/ajax/track/rateYoutubeQuality.h7m1",
 					data : ajaxData,
+					'type' : 'POST',
 					success : function(data) {
 						isVoted = true;
 
